@@ -1,0 +1,63 @@
+{
+  "XML_file": "Birmingham_USA_TTI_External_k_2021-03-30_0d79965a-422c-4be2-8316-7407aabd0590",
+  "limit": 50,
+  "ccp": "27.955439, -82.459956",
+  "inner_radius": 50,
+  "outer_radius": 120,
+
+  "distance_score": "calculated on cpp, incident position and outer radius",
+  "event_score": {
+    "JAM_UNCONDITIONAL": 0.9,
+    "JAM_CONDITIONAL": 0.9,
+    "JAM_TAIL_WARNING": 0.9,
+    "CLOSURE": 1,
+    "ROADWORKS": 0.6,
+    "ACCIDENT": 1,
+    "HAZARD": 1,
+    "WEATHER": 0.5,
+    "NONLOS_DELAY": 0.8,
+    "SECURITY_ALERT": 1,
+    "ACTIVITY": 0.3,
+    "ROAD_CONDITION": 0.3,
+    "TRAFFIC_RESTRICTION": 0.6,
+    "UNKNOWN": 0.3
+  },
+  "horizon_score": "calculated on cpp, incident position, inner and outer radius",
+  "frc_score": {
+    "FRC0":	1,
+    "FRC1":	0.9,
+    "FRC2":	0.8,
+    "FRC3":	0.7,
+    "FRC4":	0.6,
+    "FRC5":	0.5,
+    "FRC6":	0.4,
+    "FRC7":	0.3
+  },
+  "delay_score": {
+    "5": 0,
+    "7": 0.1,
+    "9": 0.2,
+    "11": 0.3,
+    "13": 0.4,
+    "15": 0.5,
+    "18": 0.6,
+    "21": 0.7,
+    "24": 0.8,
+    "27": 0.9,
+    "30": 1
+  },
+  "radius_boost_score": {
+    "4": 1,
+    "inn_r": 0.5,
+    "else": 0
+  },
+
+  "weights": {
+    "distance_score": 0.166667,
+    "event_score": 0.166667,
+    "horizon_score": 0.166667,
+    "frc_score": 0.166667,
+    "delay_score": 0.166667,
+    "radius_boost_score": 0.166667
+  }
+}

@@ -1,0 +1,13 @@
+.idea
+__pycache__
+Include
+Lib
+Scripts
+pyvenv.cfg
+Incident_ranking_function.zip
+
+OUTPUT/*
+!OUTPUT/Birmingham_USA_TTI_External_k_2021-03-30_0d79965a-422c-4be2-8316-7407aabd0590*
+
+TTI_XMLs/*
+!TTI_XMLs/Birmingham_USA_TTI_External_k_2021-03-30_0d79965a-422c-4be2-8316-7407aabd0590*

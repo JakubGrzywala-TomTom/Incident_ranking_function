@@ -1,8 +1,9 @@
 <h1>Incident ranking function</h1>
 
-This script takes a given TTI_External (or other) output file from given country and ranks importance of every message in there 
+This script takes a given TTI_External (or other) output file from given country (from this address: http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/) and ranks importance of every message in there 
 based on made up car position and series of conditions, to in the end produce short list, limited to given number of messages, of most important
 messages from car position perspective.
+Both original files and ranked, limited files can be visualized in Cancun (https://cancun.tomtomgroup.com/)
 
 Script takes as input:
 * one of TTI .xml files that need to be placed in "TTI_XMLs" folder

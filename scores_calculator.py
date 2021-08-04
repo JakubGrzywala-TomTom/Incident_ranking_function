@@ -105,7 +105,7 @@ def calc_delay_score(delay: int,
 def calc_radius_boost_score(distance_between_points: float,
                             inner_radius: float,
                             categories: dict) -> float:
-    if distance_between_points != float(-1):
+    if distance_between_points != float(-100):
         close_radius_boost = int(list(categories.keys())[0])
         if distance_between_points < close_radius_boost:
             return float(categories["4"])

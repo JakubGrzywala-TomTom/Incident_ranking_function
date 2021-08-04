@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as Et
 
+
 """
 namespaces from first testfile
 which was Birmingham_LUX_TTI_External_2021-03-25_27832d5d-a9b5-4abd-a8ae-e4d75d713c02.xml
@@ -34,13 +35,29 @@ def register_all_namespaces(file):
 
 
 def get_incident_key(traffic_message: Et.Element, namespaces: dict) -> str:
-    message_management = traffic_message.find("ns7:messageManagement", namespaces)
-    incident_key = message_management.find("ns7:key", namespaces)
-    return incident_key.text
+    try:
+        message_management = traffic_message.find("ns7:messageManagement", namespaces)
+        incident_key = message_management.find("ns7:key", namespaces)
+        return incident_key.text
+    except AttributeError:
+        return "Error"
 
 
 def get_incident_pos(traffic_message: Et.Element, namespaces: dict) -> tuple:
     location = traffic_message.find("location", namespaces)
+    try:
+        return get_incident_location_from_openlr(location, namespaces)
+    except AttributeError:
+        try:
+            return get_incident_location_from_location_description(location, namespaces)
+        except AttributeError:
+            try:
+                return get_incident_location_from_bbox(location, namespaces)
+            except AttributeError:
+                return "Error", "Error"
+
+
+def get_incident_location_from_openlr(location: Et.Element, namespaces: dict) -> tuple:
     open_lr = location.find("ns4:OpenLR", namespaces)
     xml_location_reference = open_lr.find("ns4:XMLLocationReference", namespaces)
     try:
@@ -54,38 +71,56 @@ def get_incident_pos(traffic_message: Et.Element, namespaces: dict) -> tuple:
         coordinates = location_reference_point.find("ns4:Coordinates", namespaces)
     latitude = coordinates.find("ns4:Latitude", namespaces)
     longitude = coordinates.find("ns4:Longitude", namespaces)
-    incident_pos = (float(latitude.text), float(longitude.text))
-    return incident_pos
+    return float(latitude.text), float(longitude.text)
+
+
+def get_incident_location_from_location_description(location: Et.Element, namespaces: dict) -> tuple:
+    location_description = location.find('ns5:locationDescription', namespaces)
+    start_location = location_description.find('ns5:startLocation', namespaces)
+    latitude = start_location.find('ns5:Latitude', namespaces)
+    longitude = start_location.find('ns5:Longitude', namespaces)
+    return float(latitude.text), float(longitude.text)
+
+
+def get_incident_location_from_bbox(location: Et.Element, namespaces: dict) -> tuple:
+    location_general = location.find('locationGeneral', namespaces)
+    bbox = location_general.find('boundingBox', namespaces)
+    lower_left = bbox.find('LowerLeft', namespaces)
+    ll_latitude = lower_left.find('Latitude', namespaces)
+    ll_longitude = lower_left.find('Longitude', namespaces)
+
+    upper_right = bbox.find('UpperRight', namespaces)
+    ur_latitude = upper_right.find('Latitude', namespaces)
+    ur_longitude = upper_right.find('Longitude', namespaces)
+    return (float(ll_latitude.text), float(ll_longitude.text)), (float(ur_latitude.text), float(ur_longitude.text))
 
 
 def get_incident_event(traffic_message: Et.Element, namespaces: dict) -> str:
-    message_management = traffic_message.find("ns7:messageManagement", namespaces)
-    content_type = message_management.find("ns7:contentType", namespaces)
-    return content_type.text
+    try:
+        message_management = traffic_message.find("ns7:messageManagement", namespaces)
+        content_type = message_management.find("ns7:contentType", namespaces)
+        return content_type.text
+    except AttributeError:
+        return "Error"
 
 
 def get_incident_frc(traffic_message: Et.Element, namespaces: dict) -> str:
-    location = traffic_message.find("location", namespaces)
-    location_general = location.find("locationGeneral", namespaces)
-    functional_road_class = location_general.find("functionalRoadClass", namespaces)
-    return functional_road_class.text
+    # TODO: expand searching for frc to OpenLR > XMLLocationReference > LineAttributes > FRC
+    try:
+        location = traffic_message.find("location", namespaces)
+        location_general = location.find("locationGeneral", namespaces)
+        functional_road_class = location_general.find("functionalRoadClass", namespaces)
+        return functional_road_class.text
+    except AttributeError:
+        return "Error"
 
 
-def get_incident_delay(ord_number: int,
-                       incident_key: str,
-                       traffic_message: Et.Element,
-                       namespaces: dict) -> int:
-    event = traffic_message.find("event", namespaces)
-    # TODO: some incident seem to not have any delay info
-    #  not only delay, but also no ns10:effectInfo
-    effect_info = event.find("ns10:effectInfo", namespaces)
-    if effect_info is None:
-        absolute_delay_seconds = 0
-    else:
+def get_incident_delay(traffic_message: Et.Element, namespaces: dict) -> int:
+    try:
+        event = traffic_message.find("event", namespaces)
+        effect_info = event.find("ns10:effectInfo", namespaces)
         absolute_delay_seconds = effect_info.find("ns10:absoluteDelaySeconds", namespaces)
-        if absolute_delay_seconds is None:
-            # print(str(ord_number) + ") " + incident_key + ":   " + "no delay")
-            absolute_delay_seconds = 0
-        else:
-            absolute_delay_seconds = int(absolute_delay_seconds.text)
-    return absolute_delay_seconds
+        return int(absolute_delay_seconds.text)
+    # most probably means this incident does not have any delay (e.g. all CLOSURES)
+    except AttributeError:
+        return -100

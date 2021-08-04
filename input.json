@@ -1,8 +1,8 @@
 {
-  "XML_file": "Birmingham_USA_TTI_External_k_2021-03-30_0d79965a-422c-4be2-8316-7407aabd0590",
-  "limit": 50,
-  "ccp": "27.955439, -82.459956",
-  "inner_radius": 50,
+  "XML_file": "Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d",
+  "limit": 400,
+  "ccp": "52.52343, 13.41144",
+  "inner_radius": 20,
   "outer_radius": 120,
 
   "distance_score": "calculated on cpp, incident position and outer radius",
@@ -34,18 +34,21 @@
     "FRC7":	0.3
   },
   "delay_score": {
-    "5": 0,
-    "7": 0.1,
-    "9": 0.2,
-    "11": 0.3,
-    "13": 0.4,
-    "15": 0.5,
-    "18": 0.6,
-    "21": 0.7,
-    "24": 0.8,
-    "27": 0.9,
-    "30": 1
+    "300": 0.1,
+    "420": 0.2,
+    "540": 0.3,
+    "660": 0.4,
+    "780": 0.5,
+    "900": 0.6,
+    "1080": 0.7,
+    "1260": 0.8,
+    "1440": 0.9,
+    "1620": 1
   },
+  "excluded_from_delay_score": [
+    "CLOSURE",
+    "HAZARD"
+  ],
   "radius_boost_score": {
     "4": 1,
     "inn_r": 0.5,

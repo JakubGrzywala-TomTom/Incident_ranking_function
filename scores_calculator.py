@@ -5,7 +5,18 @@ from geopy.distance import geodesic
 
 def distance_between(current_pos: tuple,
                      incident_pos: tuple) -> float:
-    return geodesic(current_pos, incident_pos, ellipsoid="WGS-84").km
+    if isinstance(incident_pos[0], float):
+        return geodesic(current_pos, incident_pos, ellipsoid="WGS-84").km
+    elif isinstance(incident_pos[0], tuple):
+        # logic for deciding which bbox coordinates are closer
+        lower_left_distance = geodesic(current_pos, incident_pos[0], ellipsoid="WGS-84").km
+        upper_right_distance = geodesic(current_pos, incident_pos[1], ellipsoid="WGS-84").km
+        if lower_left_distance < upper_right_distance:
+            return lower_left_distance
+        else:
+            return upper_right_distance
+    elif incident_pos[0] == "Error":
+        return float(-100)
 
 
 # taken from https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/
@@ -24,71 +35,86 @@ def bearing_between(current_pos: tuple,
 # set of 6 main functions calculating each score
 def calc_distance_score(distance_between_points: float,
                         outer_radius: int) -> float:
-    distance_score_value = 1 - (distance_between_points/outer_radius)
-    return round(distance_score_value, 5)
+    if distance_between_points != float(-100):
+        distance_score_value = 1 - (distance_between_points/outer_radius)
+        return round(distance_score_value, 5)
+    else:
+        return float(-100)
 
 
 def calc_event_score(incident_type: str,
                      categories: dict) -> float:
-    event_score = 0
-    for event_key, event_value in categories.items():
-        if incident_type == event_key:
-            event_score = event_value
-            break
-        else:
-            continue
-    return event_score
+    if incident_type != "Error":
+        # watch out for event_score == 0, that means
+        # we do not have certain event type covered in input.json
+        event_score = 0
+        for event_key, event_value in categories.items():
+            if incident_type == event_key:
+                event_score = event_value
+                break
+            else:
+                continue
+        return event_score
+    else:
+        return float(-100)
 
 
 def calc_horizon_score(distance_between_points: float,
                        inner_radius: int,
-                       outer_radius: int) -> int:
-    if distance_between_points <= inner_radius:
-        horizon_score_value = 1
-    elif distance_between_points <= outer_radius:
-        horizon_score_value = 0
+                       outer_radius: int) -> float:
+    # the idea in this score is to get rid of messages outside of outer radius
+    # that's why the ifs are structured like below
+    if distance_between_points != float(-100) and distance_between_points <= inner_radius:
+        return float(1)
+    elif distance_between_points != float(-100) and distance_between_points <= outer_radius:
+        return float(0)
     else:
-        # TODO: this None results in error when calculating score in "calc_rank" below
-        #  TypeError: unsupported operand type(s) for *: 'float' and 'NoneType'
-        horizon_score_value = None
-    return horizon_score_value
+        return float(-100)
 
 
 def calc_frc_score(incident_frc: str,
                    categories: dict) -> float:
-    frc_score = 0
-    for frc_key, frc_value in categories.items():
-        if incident_frc == frc_key:
-            frc_score = frc_value
-            break
-        else:
-            continue
-    # TODO: setup logging for incidents that do not have frc???
-    return frc_score
+    if incident_frc != "Error":
+        frc_score = 0
+        for frc_key, frc_value in categories.items():
+            if incident_frc == frc_key:
+                frc_score = frc_value
+                break
+            else:
+                continue
+        return frc_score
+    else:
+        return float(-100)
 
 
 def calc_delay_score(delay: int,
                      categories: dict) -> float:
-    delay_score = 1
-    for k, v in categories.items():
-        if int(delay) < int(k):
-            delay_score = float(v)
-            break
-        else:
-            continue
-    return delay_score
+    if delay != -100:
+        delay_score = 1
+        for k, v in categories.items():
+            if int(delay) < int(k):
+                delay_score = v
+                break
+            else:
+                continue
+        return float(delay_score)
+    else:
+        return 0
 
 
 def calc_radius_boost_score(distance_between_points: float,
                             inner_radius: float,
                             categories: dict) -> float:
-    if distance_between_points < 4:
-        radius_boost_score_value = categories["4"]
-    elif 4 < distance_between_points < inner_radius:
-        radius_boost_score_value = categories["inn_r"]
+    if distance_between_points != float(-1):
+        close_radius_boost = int(list(categories.keys())[0])
+        if distance_between_points < close_radius_boost:
+            return float(categories["4"])
+        elif close_radius_boost < distance_between_points < inner_radius:
+            return float(categories["inn_r"])
+        else:
+            return float(categories["else"])
     else:
-        radius_boost_score_value = categories["else"]
-    return radius_boost_score_value
+        return float(-100)
 
 
 # final incident ranking function
@@ -99,10 +125,16 @@ def calc_rank(weights: dict,
               frc_score: float,
               delay_score: float,
               radius_boost_score: float) -> float:
-    incident_ranking_score = (weights["distance_score"] * distance_score
-                              + weights["event_score"] * event_score
-                              + weights["horizon_score"] * horizon_score
-                              + weights["frc_score"] * frc_score
-                              + weights["delay_score"] * delay_score
-                              + weights["radius_boost_score"] * radius_boost_score)
-    return incident_ranking_score
+
+    if (distance_score != -100) and (event_score != -100) and (horizon_score != -100)\
+       and (frc_score != -100) and (delay_score != -100) and (radius_boost_score != -100):
+
+        incident_ranking_score = (weights["distance_score"] * distance_score
+                                  + weights["event_score"] * event_score
+                                  + weights["horizon_score"] * horizon_score
+                                  + weights["frc_score"] * frc_score
+                                  + weights["delay_score"] * delay_score
+                                  + weights["radius_boost_score"] * radius_boost_score)
+        return incident_ranking_score
+    else:
+        return float(-100)

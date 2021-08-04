@@ -1,7 +1,6 @@
-from xml_parser import (original_namespaces, register_all_namespaces,
-                        get_incident_key, get_incident_pos, get_incident_event,
-                        get_incident_frc, get_incident_delay)
-from scores_calculator import (distance_between, bearing_between, calc_rank,
+from xml_parser import (register_all_namespaces, get_incident_key, get_incident_pos,
+                        get_incident_event, get_incident_frc, get_incident_delay)
+from scores_calculator import (distance_between, calc_rank,
                                calc_distance_score, calc_event_score, calc_horizon_score,
                                calc_frc_score, calc_delay_score, calc_radius_boost_score)
 
@@ -11,7 +10,7 @@ from os import mkdir
 import xml.etree.ElementTree as Et
 
 import pandas as pd
-
+import numpy as np
 
 def ccp_string_to_tuple(ccp: str) -> tuple:
     lat = float(ccp.split(',')[0].strip())
@@ -38,7 +37,7 @@ if __name__ == "__main__":
     namespaces = register_all_namespaces(join(xml_files_directory, xml_file + ".xml"))
     root = tree.getroot()
 
-    # TODO: compare read namespaces to original ones?
+    #  compare read namespaces to original ones?
     #  I noticed they can change in time comparing to some files from year ago
     #  so maybe this change can be caught here
 
@@ -54,11 +53,9 @@ if __name__ == "__main__":
     current_pos = ccp_string_to_tuple(input_info["ccp"])
 
     for number, traffic_message in enumerate(root.findall('trafficMessage', namespaces)):
-        incident_key = get_incident_key(traffic_message, namespaces)
-        dataframe.at[number, "incident_key"] = incident_key
+        dataframe.at[number, "incident_key"] = get_incident_key(traffic_message, namespaces)
 
-        incident_pos = get_incident_pos(traffic_message, namespaces)
-        distance = distance_between(current_pos, incident_pos)
+        distance = distance_between(current_pos, get_incident_pos(traffic_message, namespaces))
         dataframe.at[number, "distance"] = distance
 
         # bearing = bearing_between(current_pos, incident_pos)
@@ -85,20 +82,21 @@ if __name__ == "__main__":
         frc_score = calc_frc_score(incident_frc, input_info["frc_score"])
         dataframe.at[number, "frc_score"] = frc_score
 
-        incident_delay = get_incident_delay(number,
-                                            incident_key,
-                                            traffic_message,
-                                            namespaces)
-        dataframe.at[number, "delay"] = incident_delay
-        delay_score = calc_delay_score(incident_delay, input_info["delay_score"])
-        dataframe.at[number, "delay_score"] = delay_score
+        # TODO: some incidents do not have delays so they should not receive delay score
+        #  eg. CLOSURES should get delay score 1 (max value)?
+        if incident_event not in input_info["excluded_from_delay_score"]:
+            incident_delay = get_incident_delay(traffic_message,
+                                                namespaces)
+            dataframe.at[number, "delay"] = incident_delay
+            delay_score = calc_delay_score(incident_delay, input_info["delay_score"])
+            dataframe.at[number, "delay_score"] = delay_score
+        else:
+            delay_score = 1
+            dataframe.at[number, "delay"] = np.nan
+            dataframe.at[number, "delay_score"] = delay_score
 
-        # TODO: TypeError handling for cases outside of outer radius (when horizon score is None)
-        try:
-            ranking_score = calc_rank(input_info["weights"], distance_score, event_score,
-                                      horizon_score, frc_score, delay_score, radius_boost_score)
-        except TypeError:
-            ranking_score = float(-1)
+        ranking_score = calc_rank(input_info["weights"], distance_score, event_score,
+                                  horizon_score, frc_score, delay_score, radius_boost_score)
         dataframe.at[number, "ranking_score"] = ranking_score
 
     # save unsorted incidents with scores in the csv

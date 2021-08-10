@@ -26,5 +26,5 @@ Both original files and ranked, limited files can be visualized in Cancun (https
 * TTI output .xml file in "TTI_XMLs" folder
 * .json configuration file (called as you like)
 * in command prompt (cmd/PyCharm terminal/whatever) in project's root folder write `py incident_ranking_function.py -f <your_configuration_file>.json`
-<br> (of course PyCharm configurations can be used, using that you will be asked for input .json file name)
-<br> !!! configuration .json file has to be in root folder  
+(of course PyCharm configurations can be used, using that you will be asked for input .json file name)
+* !!! configuration .json file has to be in root folder  

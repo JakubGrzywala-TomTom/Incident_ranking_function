@@ -3,6 +3,37 @@ from math import degrees, atan2, sin, cos, radians
 from geopy.distance import geodesic
 
 
+# function parsing current car position from string in input.json
+def ccp_string_to_tuple(ccp: str) -> tuple:
+    lat = float(ccp.split(',')[0].strip())
+    lon = float(ccp.split(',')[1].strip())
+    return lat, lon
+
+
+def frc_list_from_string(string: str) -> list:
+    frc_list = string.split(",")
+    return [frc.strip().upper() for frc in frc_list]
+
+
+def filter_out_function(distance_between_points: float,
+                        inner_radius: int,
+                        outer_radius: int,
+                        frc: str,
+                        event:str,
+                        categories: dict) -> bool:
+
+    inn_r_frc_filter = categories["inn_r"]
+    out_r_frc_filter = categories["out_r"]
+    third_r_event_filter = categories["3rd_r"]
+
+    if (distance_between_points <= inner_radius and frc not in inn_r_frc_filter) \
+       or (distance_between_points <= outer_radius and frc not in out_r_frc_filter) \
+       or (distance_between_points > outer_radius and event in third_r_event_filter):
+        return False
+    else:
+        return True
+
+
 def distance_between(current_pos: tuple,
                      incident_pos: tuple) -> float:
     if isinstance(incident_pos[0], float):
@@ -32,7 +63,7 @@ def bearing_between(current_pos: tuple,
     return degrees(atan2(y, x))
 
 
-# set of 6 main functions calculating each score
+# set of 5 main functions calculating each score
 def calc_distance_score(distance_between_points: float,
                         outer_radius: int) -> float:
     if distance_between_points != float(-100):
@@ -55,19 +86,6 @@ def calc_event_score(incident_type: str,
             else:
                 continue
         return event_score
-    else:
-        return float(-100)
-
-
-def calc_horizon_score(distance_between_points: float,
-                       inner_radius: int,
-                       outer_radius: int) -> float:
-    # the idea in this score is to get rid of messages outside of outer radius
-    # that's why the ifs are structured like below
-    if distance_between_points != float(-100) and distance_between_points <= inner_radius:
-        return float(1)
-    elif distance_between_points != float(-100) and distance_between_points <= outer_radius:
-        return float(0)
     else:
         return float(-100)
 
@@ -119,19 +137,18 @@ def calc_radius_boost_score(distance_between_points: float,
 
 # final incident ranking function
 def calc_rank(weights: dict,
+              filter_out: bool,
               distance_score: float,
               event_score: float,
-              horizon_score: float,
               frc_score: float,
               delay_score: float,
               radius_boost_score: float) -> float:
 
-    if (distance_score != -100) and (event_score != -100) and (horizon_score != -100)\
+    if (filter_out is False) and (distance_score != -100) and (event_score != -100) \
        and (frc_score != -100) and (delay_score != -100) and (radius_boost_score != -100):
 
         incident_ranking_score = (weights["distance_score"] * distance_score
                                   + weights["event_score"] * event_score
-                                  + weights["horizon_score"] * horizon_score
                                   + weights["frc_score"] * frc_score
                                   + weights["delay_score"] * delay_score
                                   + weights["radius_boost_score"] * radius_boost_score)

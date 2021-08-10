@@ -5,7 +5,17 @@
   "inner_radius": 20,
   "outer_radius": 120,
 
+  "filtering_function": {
+    "inn_r": "FRC7",
+    "out_r": "FRC6,FRC7",
+    "3rd_r": "CLOSURE,ROADWORKS"
+  },
   "distance_score": "calculated on cpp, incident position and outer radius",
+    "radius_boost_score": {
+    "4": 1,
+    "inn_r": 0.5,
+    "else": 0
+  },
   "event_score": {
     "JAM_UNCONDITIONAL": 0.9,
     "JAM_CONDITIONAL": 0.9,
@@ -22,7 +32,12 @@
     "TRAFFIC_RESTRICTION": 0.6,
     "UNKNOWN": 0.3
   },
-  "horizon_score": "calculated on cpp, incident position, inner and outer radius",
+  "jam_priority": {
+    "101": 1,
+    "108": 0.8,
+    "115": 0.6,
+    "123": 0.4
+  },
   "frc_score": {
     "FRC0":	1,
     "FRC1":	0.9,
@@ -49,18 +64,12 @@
     "CLOSURE",
     "HAZARD"
   ],
-  "radius_boost_score": {
-    "4": 1,
-    "inn_r": 0.5,
-    "else": 0
-  },
 
   "weights": {
-    "distance_score": 0.166667,
-    "event_score": 0.166667,
-    "horizon_score": 0.166667,
-    "frc_score": 0.166667,
-    "delay_score": 0.166667,
-    "radius_boost_score": 0.166667
+    "distance_score": 0.2,
+    "event_score": 0.2,
+    "frc_score": 0.2,
+    "delay_score": 0.2,
+    "radius_boost_score": 0.2
   }
 }

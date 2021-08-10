@@ -8,10 +8,8 @@ pyvenv.cfg
 Incident_ranking_function.zip
 
 OUTPUT/*
-!OUTPUT/Birmingham_USA_TTI_External_k_2021-03-30_0d79965a-422c-4be2-8316-7407aabd0590*
 !OUTPUT/Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d*
 
 TTI_XMLs/*
-!TTI_XMLs/Birmingham_USA_TTI_External_k_2021-03-30_0d79965a-422c-4be2-8316-7407aabd0590*
 !TTI_XMLs/Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d*
 

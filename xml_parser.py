@@ -43,6 +43,7 @@ def get_incident_key(traffic_message: Et.Element, namespaces: dict) -> str:
         return "Error"
 
 
+# TODO: should only use location from bbox
 def get_incident_pos(traffic_message: Et.Element, namespaces: dict) -> tuple:
     location = traffic_message.find("location", namespaces)
     try:
@@ -104,8 +105,18 @@ def get_incident_event(traffic_message: Et.Element, namespaces: dict) -> str:
         return "Error"
 
 
+def get_jam_priority(traffic_message: Et.Element, namespaces: dict) -> str:
+    try:
+        event = traffic_message.find("event", namespaces)
+        event_description = event.find("eventDescription", namespaces)
+        alert_c_codes = event_description.find("alertCCodes", namespaces)
+        eventCode = alert_c_codes.find("eventCode", namespaces)
+        return eventCode.text
+    except AttributeError:
+        return "Error"
+
+
 def get_incident_frc(traffic_message: Et.Element, namespaces: dict) -> str:
-    # TODO: expand searching for frc to OpenLR > XMLLocationReference > LineAttributes > FRC
     try:
         location = traffic_message.find("location", namespaces)
         location_general = location.find("locationGeneral", namespaces)

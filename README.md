@@ -5,18 +5,26 @@ based on made up car position and series of conditions, to in the end produce sh
 messages from car position perspective.
 Both original files and ranked, limited files can be visualized in Cancun (https://cancun.tomtomgroup.com/)
 
-Script takes as input:
-* one of TTI .xml files that need to be placed in "TTI_XMLs" folder
+<h3>Script takes as input:</h3>
+* one of TTI output .xml files that need to be placed in "TTI_XMLs" folder
 * input.json, which is collection of info needed for ranking messages, e.g.:
     * current car position (ccp)
     * inner radius around ccp
     * outer radius around ccp
-    * file name (without ".xml") of TTI file that needs to be processed
+    * file name (with or without ".xml") of TTI file that needs to be processed
     * limit of messages in processed file
     * score dictionaries that hold condition and value that message should receive for it
     
-
-Script needs:
-* Python in at least 3.8 version (script written in 3.9.2)
-* pandas and geopy external libraries installed (both in requirements.txt)
+<h3>Script needs:</h3>
+* Python in at least 3.8 version (script written in [3.9.2](https://www.python.org/downloads/release/python-392/))
+* `git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function`
+* `cd Incident_ranking_function`
+* pandas and geopy external libraries installed (both in requirements.txt) by `pip install -r requirements.txt`
 * **modification in xml standard library** (commenting out/removing two first lines in register_namespace function (line 1006 and 1007) in xml.etree.ElementTree) for ability to register xml namespaces called "ns*"
+
+<h3>Starting script (after setting up what it needs)</h3>
+* TTI output .xml file in "TTI_XMLs" folder
+* .json configuration file (called as you like)
+* in command prompt (cmd/PyCharm terminal/whatever) in project's root folder write `py incident_ranking_function.py -f <your_configuration_file>.json`
+<br> (of course PyCharm configurations can be used, using that you will be asked for input .json file name)
+<br> !!! configuration .json file has to be in root folder  

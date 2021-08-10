@@ -14,8 +14,8 @@ import pandas as pd
 import numpy as np
 
 
-if __name__ == "__main__":
-    # load json file with current car position, radii and incident ranking method's category scores
+def main():
+    # ask for input .json filename in terminal after -f flag or through sysin if script run from PyCharm configuration
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 
@@ -27,6 +27,7 @@ if __name__ == "__main__":
     else:
         file = args[opts.index('-f')]
 
+    # load json file with current car position, radii and incident ranking method's category scores
     with open(file) as input_json:
         input_info = load(input_json)
 
@@ -132,3 +133,7 @@ if __name__ == "__main__":
                encoding='utf-8',
                xml_declaration=True,
                default_namespace=None)
+
+
+if __name__ == "__main__":
+    main()

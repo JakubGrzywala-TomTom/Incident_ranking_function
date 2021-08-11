@@ -43,10 +43,10 @@ TTI .xml consists of metadata and set of <trafficMessage>, which hold tags used 
 1. From \<location\> -> \<locationGeneral\> -> \<boundingBox\> ->:
     * either \<LowerLeft\>
     * or \<UpperRight\> (one which is closer to ccp), if n/a
-2. From \<location\> -> <ns5:locationDescription> -> <ns5:startLocation>, if n/a
+2. From \<location\> -> \<ns5:locationDescription\> -> \<ns5:startLocation\>, if n/a
 3. From \<location\> -> <ns4:OpenLR> -> <ns4:XMLLocationReference> ->:
-    * <ns4:LineLocationReference> -> <ns4:LocationReferencePoint> -> <ns4:Coordinates>
-    * <ns4:PointLocationReference> -> <ns4:PointAlongLine> -> <ns4:LocationReferencePoint> -> <ns4:Coordinates>
+    * \<ns4:LineLocationReference\> -> \<ns4:LocationReferencePoint\> -> \<ns4:Coordinates\>
+    * \<ns4:PointLocationReference\> -> \<ns4:PointAlongLine\> -> \<ns4:LocationReferencePoint\> -> \<ns4:Coordinates\>
 
 Outcome will be:
 * tuple of two tuples of lat & lon, set closer to ccp will be taken for distance calculation
@@ -54,14 +54,14 @@ Outcome will be:
 * ("Error", "Error") tuple, if coordinates not found
 
 ### 2.2. Event info ###
-From <ns7:messageManagement> -> <ns7:contentType>
+From \<ns7:messageManagement\> -> \<ns7:contentType\>
 
 Outcome will be string containing:
 * event name
 * "Error" if event name not found
 
 ### 2.3. Jam priority ###
-From \<event\> -> <ns9:eventDescription> -> <ns9:alertCCodes> -> <ns9:eventCode>
+From \<event\> -> \<ns9:eventDescription\> -> \<ns9:alertCCodes\> -> \<ns9:eventCode\>
 
 Outcome will be string containing:
 * jam priority
@@ -75,7 +75,7 @@ Outcome will be string containing:
 * "Error" if not found
 
 ### 2.5. Delay info ### 
-From \<event\> -> <ns10:effectInfo> -> <ns10:absoluteDelaySeconds>
+From \<event\> -> \<ns10:effectInfo\> -> \<ns10:absoluteDelaySeconds\>
 
 Outcome will be integer:
 * delay in seconds

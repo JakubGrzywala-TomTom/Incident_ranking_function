@@ -25,7 +25,7 @@ def main():
         if file == "exit":
             exit()
     else:
-        file = args[opts.index('-f')]
+        file = args[opts.index("-f")]
 
     # load json file with current car position, radii and incident ranking method's category scores
     with open(file) as input_json:
@@ -48,7 +48,7 @@ def main():
         tree = Et.parse(join(xml_files_directory, xml_file + ".xml"))
         namespaces = register_all_namespaces(join(xml_files_directory, xml_file + ".xml"))
     root = tree.getroot()
-    traffic_messages = root.findall('trafficMessage', namespaces)
+    traffic_messages = root.findall("trafficMessage", namespaces)
     traffic_messages_number = len(traffic_messages)
 
     # create pandas dataframe for collecting scores and sorting/limiting output file
@@ -121,7 +121,7 @@ def main():
     # go through trafficMessages from original xml again
     # and compare incident keys in there to list of keys after scoring, sorting and limiting
     comparison_list = dataframe_sorted["incident_key"].tolist()
-    for traffic_message in root.findall('trafficMessage', namespaces):
+    for traffic_message in root.findall("trafficMessage", namespaces):
         incident_key = get_incident_key(traffic_message, namespaces)
         if incident_key in comparison_list:
             continue

@@ -43,17 +43,16 @@ def get_incident_key(traffic_message: Et.Element, namespaces: dict) -> str:
         return "Error"
 
 
-# TODO: should only use location from bbox
 def get_incident_pos(traffic_message: Et.Element, namespaces: dict) -> tuple:
     location = traffic_message.find("location", namespaces)
     try:
-        return get_incident_location_from_openlr(location, namespaces)
+        return get_incident_location_from_bbox(location, namespaces)
     except AttributeError:
         try:
             return get_incident_location_from_location_description(location, namespaces)
         except AttributeError:
             try:
-                return get_incident_location_from_bbox(location, namespaces)
+                return get_incident_location_from_openlr(location, namespaces)
             except AttributeError:
                 return "Error", "Error"
 
@@ -76,23 +75,23 @@ def get_incident_location_from_openlr(location: Et.Element, namespaces: dict) ->
 
 
 def get_incident_location_from_location_description(location: Et.Element, namespaces: dict) -> tuple:
-    location_description = location.find('ns5:locationDescription', namespaces)
-    start_location = location_description.find('ns5:startLocation', namespaces)
-    latitude = start_location.find('ns5:Latitude', namespaces)
-    longitude = start_location.find('ns5:Longitude', namespaces)
+    location_description = location.find("ns5:locationDescription", namespaces)
+    start_location = location_description.find("ns5:startLocation", namespaces)
+    latitude = start_location.find("ns5:Latitude", namespaces)
+    longitude = start_location.find("ns5:Longitude", namespaces)
     return float(latitude.text), float(longitude.text)
 
 
 def get_incident_location_from_bbox(location: Et.Element, namespaces: dict) -> tuple:
-    location_general = location.find('locationGeneral', namespaces)
-    bbox = location_general.find('boundingBox', namespaces)
-    lower_left = bbox.find('LowerLeft', namespaces)
-    ll_latitude = lower_left.find('Latitude', namespaces)
-    ll_longitude = lower_left.find('Longitude', namespaces)
+    location_general = location.find("locationGeneral", namespaces)
+    bbox = location_general.find("boundingBox", namespaces)
+    lower_left = bbox.find("LowerLeft", namespaces)
+    ll_latitude = lower_left.find("Latitude", namespaces)
+    ll_longitude = lower_left.find("Longitude", namespaces)
 
-    upper_right = bbox.find('UpperRight', namespaces)
-    ur_latitude = upper_right.find('Latitude', namespaces)
-    ur_longitude = upper_right.find('Longitude', namespaces)
+    upper_right = bbox.find("UpperRight", namespaces)
+    ur_latitude = upper_right.find("Latitude", namespaces)
+    ur_longitude = upper_right.find("Longitude", namespaces)
     return (float(ll_latitude.text), float(ll_longitude.text)), (float(ur_latitude.text), float(ur_longitude.text))
 
 
@@ -108,9 +107,9 @@ def get_incident_event(traffic_message: Et.Element, namespaces: dict) -> str:
 def get_jam_priority(traffic_message: Et.Element, namespaces: dict) -> str:
     try:
         event = traffic_message.find("event", namespaces)
-        event_description = event.find("eventDescription", namespaces)
-        alert_c_codes = event_description.find("alertCCodes", namespaces)
-        eventCode = alert_c_codes.find("eventCode", namespaces)
+        event_description = event.find("ns9:eventDescription", namespaces)
+        alert_c_codes = event_description.find("ns9:alertCCodes", namespaces)
+        eventCode = alert_c_codes.find("ns9:eventCode", namespaces)
         return eventCode.text
     except AttributeError:
         return "Error"

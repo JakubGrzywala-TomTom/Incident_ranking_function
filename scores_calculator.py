@@ -5,8 +5,8 @@ from geopy.distance import geodesic
 
 # function parsing current car position from string in input.json
 def ccp_string_to_tuple(ccp: str) -> tuple:
-    lat = float(ccp.split(',')[0].strip())
-    lon = float(ccp.split(',')[1].strip())
+    lat = float(ccp.split(",")[0].strip())
+    lon = float(ccp.split(",")[1].strip())
     return lat, lon
 
 

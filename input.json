@@ -11,7 +11,7 @@
     "3rd_r": "CLOSURE,ROADWORKS"
   },
   "distance_score": "calculated on cpp, incident position and outer radius",
-    "radius_boost_score": {
+  "radius_boost_score": {
     "4": 1,
     "inn_r": 0.5,
     "else": 0

@@ -5,7 +5,7 @@ from scores_calculator import (distance_between, calc_rank, ccp_string_to_tuple,
                                calc_frc_score, calc_delay_score, calc_radius_boost_score)
 
 from json import load
-from os.path import join, dirname, abspath, exists
+from os.path import join, dirname, abspath, exists, sep
 from os import mkdir
 import sys
 import xml.etree.ElementTree as Et
@@ -15,38 +15,63 @@ import numpy as np
 
 
 def main():
-    # ask for input .json filename in terminal after -f flag or through sysin if script run from PyCharm configuration
+    # ask for folder with input .json and input TTI .xml  in terminal after -f flag
+    # or through sysin if script run from PyCharm configuration
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 
     if "-f" not in opts:
-        file = input("Please, specify input json file: "
-                     "(or write \"exit\" if you want to leave) ")
-        if file == "exit":
+        folder_flag_value = input("Please, specify folder in OUTPUT with input TTI .xml and .json configuration: "
+                                  "(or write \"exit\" if you want to leave) ")
+        if folder_flag_value == "exit":
             exit()
     else:
-        file = args[opts.index("-f")]
+        folder_flag_value = args[opts.index("-f")]
+
+    # check if folders for output exist, if not create it
+    output_directory = join(dirname(abspath(__file__)), "OUTPUT")
+    if not exists(output_directory):
+        mkdir(output_directory)
+        print(output_directory + " had to be created.")
+
+    dev_test_directory = join(dirname(abspath(__file__)), "OUTPUT", "_dev_tests")
+    if not exists(dev_test_directory):
+        mkdir(dev_test_directory)
+        print(dev_test_directory + " had to be created. Please, before rerun insert one TTI .xml and "
+                                   "one config input.json file into it or folder next to it with name of your choice. "
+                                   "Then specify folder name with '-f' flag during rerun.")
+        exit()
+
+    # set which folder contains input and will accept output files
+    output_folder_rel_path = folder_flag_value.split(sep)
+    if len(output_folder_rel_path) == 2 and output_folder_rel_path[0] == "OUTPUT" and output_folder_rel_path[1] != "":
+        output_work_directory = join(dirname(abspath(__file__)), output_folder_rel_path[0], output_folder_rel_path[1])
+    elif len(output_folder_rel_path) == 1:
+        output_work_directory = join(dirname(abspath(__file__)), "OUTPUT", output_folder_rel_path[0])
+    else:
+        output_work_directory = "lipppa"
+        print("PLease, specify existing folder within 'OUTPUT' folder. "
+              "\nEither by writing folder name by itself after '-f' or '-f OUTPUT\\<folder-name>'")
+        exit()
 
     # load json file with current car position, radii and incident ranking method's category scores
-    with open(file) as input_json:
-        input_info = load(input_json)
-
-    # check if folders for input xmls and output files exist, if not create them
-    xml_files_directory = join(dirname(abspath(__file__)), "TTI_XMLs")
-    if not exists(xml_files_directory):
-        mkdir(xml_files_directory)
-    output_files_directory = join(dirname(abspath(__file__)), "OUTPUT")
-    if not exists(output_files_directory):
-        mkdir(output_files_directory)
+    try:
+        config_json_file = join(output_work_directory, "input.json")
+        with open(config_json_file) as input_json:
+            input_info = load(input_json)
+    except FileNotFoundError:
+        print("PLease, specify existing folder within 'OUTPUT' folder. "
+              "\nEither by writing folder name by itself after '-f' or '-f OUTPUT\\<folder-name>'")
+        exit()
 
     # load TTI XML file
     xml_file = input_info["XML_file"]
     if str(xml_file).endswith(".xml"):
-        tree = Et.parse(join(xml_files_directory, xml_file))
-        namespaces = register_all_namespaces(join(xml_files_directory, xml_file))
+        tree = Et.parse(join(output_work_directory, xml_file))
+        namespaces = register_all_namespaces(join(output_work_directory, xml_file))
     else:
-        tree = Et.parse(join(xml_files_directory, xml_file + ".xml"))
-        namespaces = register_all_namespaces(join(xml_files_directory, xml_file + ".xml"))
+        tree = Et.parse(join(output_work_directory, xml_file + ".xml"))
+        namespaces = register_all_namespaces(join(output_work_directory, xml_file + ".xml"))
     root = tree.getroot()
     traffic_messages = root.findall("trafficMessage", namespaces)
     traffic_messages_number = len(traffic_messages)
@@ -108,7 +133,7 @@ def main():
         print("\rCalculated scores: " + str(number + 1) + " / " + str(traffic_messages_number), end='', flush=True)
 
     # save unsorted incidents with scores in the csv
-    dataframe.to_csv(join("OUTPUT", xml_file + "_all_scores.csv"), encoding='utf-8')
+    dataframe.to_csv(join(output_work_directory, xml_file + "_all_scores.csv"), encoding='utf-8')
 
     # omit all excluded messages
     dataframe = dataframe[dataframe["ranking_score"] != -100]
@@ -116,7 +141,7 @@ def main():
     # sort, limit incidents and save in another csv
     dataframe_sorted = dataframe.sort_values(by="ranking_score", ascending=False)
     dataframe_sorted = dataframe_sorted.head(input_info["limit"])
-    dataframe_sorted.to_csv(join("OUTPUT", xml_file + "_limited_scores.csv"), encoding='utf-8')
+    dataframe_sorted.to_csv(join(output_work_directory, xml_file + "_limited_scores.csv"), encoding='utf-8')
 
     # go through trafficMessages from original xml again
     # and compare incident keys in there to list of keys after scoring, sorting and limiting
@@ -129,7 +154,7 @@ def main():
             root.remove(traffic_message)
 
     tree = Et.ElementTree(root)
-    tree.write(join("OUTPUT", xml_file + "_OUTPUT.xml"),
+    tree.write(join(output_work_directory, xml_file + "_OUTPUT.xml"),
                encoding='utf-8',
                xml_declaration=True,
                default_namespace=None)

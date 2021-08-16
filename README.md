@@ -7,26 +7,29 @@ Both original files and ranked, limited files can be visualized in Cancun (https
 
 ## 1. Setup ##
 
-### 1.1. Script takes as input: ###
-* one of TTI output .xml files that need to be placed in "TTI_XMLs" folder
-* input.json, which is collection of info needed for ranking messages, e.g.:
-    * current car position (ccp)
-    * inner radius around ccp
-    * outer radius around ccp
-    * file name (with or without ".xml") of TTI file that needs to be processed
-    * limit of messages in processed file
-    * score dictionaries that hold condition and value that message should receive for it
-    
-### 1.2. Script needs: ###
+### 1.1. Script needs: ###
 * Python in at least 3.8 version (script written in [3.9.2](https://www.python.org/downloads/release/python-392/))
 * `git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function`
 * `cd Incident_ranking_function`
 * pandas and geopy external libraries installed (both in requirements.txt) by `pip install -r requirements.txt`
 * **modification in xml standard library** (commenting out/removing two first lines in register_namespace function (line 1006 and 1007) in xml.etree.ElementTree) for ability to register xml namespaces called "ns*"
 
+### 1.2. Script takes as input: ###
+* One of TTI output .xml files from [Orlando Datastore](http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/).   
+* Input.json, which is collection of info needed for ranking messages, e.g.:
+    * current car position (ccp)
+    * inner radius around ccp
+    * outer radius around ccp
+    * file name (with or without ".xml") of TTI file that needs to be processed
+    * limit of messages in processed file
+    * score dictionaries that hold condition and value that message should receive for it
+
+>Both files need to be placed in one of "OUTPUT" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script:
+> 
+>`py incident-ranking-function -f OUTPUT\<your-folder-name>`
+
 ### 1.3. Starting script (after setting up what it needs) ###
-* TTI output .xml file in "TTI_XMLs" folder
-* .json configuration file (called as you like)
+* TTI output .xml and input.json configuration file in one of "OUTPUT" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
   * `.\Scripts\activate` to activate Python virtual environment with libraries and modifications described in 1.2. 
   * `py incident_ranking_function.py -f <your_configuration_file>.json`

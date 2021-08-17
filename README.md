@@ -33,9 +33,9 @@ Both original files and ranked, limited files can be visualized in Cancun (https
 * TTI output .xml and input.json configuration file in one of "OUTPUT" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
   * `.\Scripts\activate` to activate Python virtual environment with libraries and modifications described in 1.2. 
-  * `py incident_ranking_function.py -f output\<your_configuration_file>.json`
-* in PyCharm just write `py incident_ranking_function.py -f output\<your_configuration_file>.json` in Terminal in open project
-(of course PyCharm configurations can be used, using that you will be asked for input .json file name, filename completion doesn't work there, so it's less convenient)
+  * `py incident_ranking_function.py -f output\<your-folder-name>`
+* in PyCharm just write `py incident_ranking_function.py -f output\<your-folder-name>` in Terminal in open project
+(of course PyCharm configurations can be used, using that you will be asked for `output\<your-folder-name>`, filename completion doesn't work there, so it's less convenient)
 * !!! configuration .json file has to be in root folder  
 
 ___

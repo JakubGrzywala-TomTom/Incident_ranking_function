@@ -27,14 +27,14 @@ Both original files and ranked, limited files can be visualized in Cancun (https
 
 >Both files need to be placed in one of "OUTPUT" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script:
 > 
->`py incident-ranking-function -f OUTPUT\<your-folder-name>`
+>`py incident-ranking-function -f output\<your-folder-name>`
 
 ### 1.3. Starting script (after setting up what it needs) ###
 * TTI output .xml and input.json configuration file in one of "OUTPUT" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
   * `.\Scripts\activate` to activate Python virtual environment with libraries and modifications described in 1.2. 
-  * `py incident_ranking_function.py -f <your_configuration_file>.json`
-* in PyCharm just write `py incident_ranking_function.py -f <your_configuration_file>.json` in Terminal in open project
+  * `py incident_ranking_function.py -f output\<your_configuration_file>.json`
+* in PyCharm just write `py incident_ranking_function.py -f output\<your_configuration_file>.json` in Terminal in open project
 (of course PyCharm configurations can be used, using that you will be asked for input .json file name, filename completion doesn't work there, so it's less convenient)
 * !!! configuration .json file has to be in root folder  
 
@@ -47,10 +47,10 @@ TTI .xml consists of metadata and set of <trafficMessage>, which hold tags used 
 1. From \<location\> -> \<locationGeneral\> -> \<boundingBox\> ->:
     * either \<LowerLeft\>
     * or \<UpperRight\> (one which is closer to ccp), if n/a
-2. From \<location\> -> \<ns5:locationDescription\> -> \<ns5:startLocation\>, if n/a
-3. From \<location\> -> <ns4:OpenLR> -> <ns4:XMLLocationReference> ->:
-    * \<ns4:LineLocationReference\> -> \<ns4:LocationReferencePoint\> -> \<ns4:Coordinates\>
-    * \<ns4:PointLocationReference\> -> \<ns4:PointAlongLine\> -> \<ns4:LocationReferencePoint\> -> \<ns4:Coordinates\>
+2. From \<location\> -> \<locationDescription\> -> \<startLocation\>, if n/a
+3. From \<location\> -> <OpenLR> -> <XMLLocationReference> ->:
+    * \<LineLocationReference\> -> \<LocationReferencePoint\> -> \<Coordinates\>
+    * \<PointLocationReference\> -> \<PointAlongLine\> -> \<LocationReferencePoint\> -> \<Coordinates\>
 
 Outcome will be:
 * tuple of two tuples of lat & lon, set closer to ccp will be taken for distance calculation
@@ -58,14 +58,14 @@ Outcome will be:
 * ("Error", "Error") tuple, if coordinates not found
 
 ### 2.2. Event info ###
-From \<ns7:messageManagement\> -> \<ns7:contentType\>
+From \<messageManagement\> -> \<contentType\>
 
 Outcome will be string containing:
 * event name
 * "Error" if event name not found
 
 ### 2.3. Jam priority ###
-From \<event\> -> \<ns9:eventDescription\> -> \<ns9:alertCCodes\> -> \<ns9:eventCode\>
+From \<event\> -> \<eventDescription\> -> \<alertCCodes\> -> \<eventCode\>
 
 Outcome will be string containing:
 * jam priority
@@ -79,7 +79,7 @@ Outcome will be string containing:
 * "Error" if not found
 
 ### 2.5. Delay info ### 
-From \<event\> -> \<ns10:effectInfo\> -> \<ns10:absoluteDelaySeconds\>
+From \<event\> -> \<effectInfo\> -> \<absoluteDelaySeconds\>
 
 Outcome will be integer:
 * delay in seconds

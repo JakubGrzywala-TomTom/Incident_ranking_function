@@ -1,15 +1,10 @@
 .idea
 __pycache__
 Include
-INPUT_JSONS
 Lib
 Scripts
 pyvenv.cfg
 Incident_ranking_function.zip
 
 OUTPUT/*
-!OUTPUT/Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d*
-
-TTI_XMLs/*
-!TTI_XMLs/Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d*
-
+!OUTPUT/_dev_tests

@@ -8,9 +8,11 @@
   "filtering_function": {
     "inn_r": "FRC7",
     "out_r": "FRC6,FRC7",
-    "3rd_r": "CLOSURE,ROADWORKS"
+    "3rd_r_frcs": "FRC0,FRC1",
+    "3rd_r_events": "CLOSURE",
+    "excluded_completely": "JAM_CONDITIONAL"
   },
-  "distance_score": "calculated on cpp, incident position and outer radius",
+  "distance_score": "calculated on ccp, incident position and outer radius",
   "radius_boost_score": {
     "4": 1,
     "inn_r": 0.5,

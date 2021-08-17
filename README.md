@@ -7,8 +7,9 @@ Both original files and ranked, limited files can be visualized in Cancun (https
 
 ## 1. Setup ##
 
-### 1.1. Script needs: ###
+### 1.1. Script setup: ###
 * Python in at least 3.8 version (script written in [3.9.2](https://www.python.org/downloads/release/python-392/))
+* Git version control system: https://git-scm.com/download/win
 * `git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function`
 * `cd Incident_ranking_function`
 * pandas and geopy external libraries installed (both in requirements.txt) by `pip install -r requirements.txt`
@@ -91,7 +92,7 @@ ___
 Decides either message should be taken into account.
 * in inner radius EXCLUDES messages with ceratin FRCs given on a list "inn_r" (delimited with ",", no space)
 * in outer radius EXCLUDES messages with ceratin FRCs given on a list "out_r"
-* outside of outer radius: INCLUDES only messages given on a list "3rd_r"
+* outside of outer radius: INCLUDES only messages given on a "3rd_r_frcs" and  "3rd_r_events" lists (e.g. only CLOSURES on low frcs should be left)
 
 Outcome: boolean, decides whether to:
 * filter out a message (True)

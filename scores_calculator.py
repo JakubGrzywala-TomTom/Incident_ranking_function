@@ -10,9 +10,9 @@ def ccp_string_to_tuple(ccp: str) -> tuple:
     return lat, lon
 
 
-def frc_list_from_string(string: str) -> list:
+def list_from_string(string: str) -> list:
     frc_list = string.split(",")
-    return [frc.strip().upper() for frc in frc_list]
+    return [str(frc.strip().upper()) for frc in frc_list]
 
 
 def filter_out_function(distance_between_points: float,
@@ -22,16 +22,22 @@ def filter_out_function(distance_between_points: float,
                         event:str,
                         categories: dict) -> bool:
 
-    inn_r_frc_filter = categories["inn_r"]
-    out_r_frc_filter = categories["out_r"]
-    third_r_event_filter = categories["3rd_r"]
+    # instantiating those in "incident_ranking_function" would be much more efficient
+    inn_r_frc_list = list_from_string(str(categories["inn_r"]))
+    out_r_frc_list = list_from_string(str(categories["out_r"]))
+    third_r_frc_list = list_from_string(str(categories["3rd_r_frcs"]))
+    third_r_event_list = list_from_string(str(categories["3rd_r_events"]))
+    excluded_completely = list_from_string(str(categories["excluded_completely"]))
 
-    if (distance_between_points <= inner_radius and frc not in inn_r_frc_filter) \
-       or (distance_between_points <= outer_radius and frc not in out_r_frc_filter) \
-       or (distance_between_points > outer_radius and event in third_r_event_filter):
-        return False
-    else:
+    if (
+        (event in excluded_completely)
+        or ((distance_between_points <= inner_radius) and (frc in inn_r_frc_list))
+        or ((distance_between_points > inner_radius) and (distance_between_points <= outer_radius) and (frc in out_r_frc_list))
+        or ((distance_between_points > outer_radius) and not ((frc in third_r_frc_list) and (event in third_r_event_list)))
+    ):
         return True
+    else:
+        return False
 
 
 def distance_between(current_pos: tuple,

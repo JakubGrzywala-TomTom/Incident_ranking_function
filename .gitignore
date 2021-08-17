@@ -6,5 +6,5 @@ Scripts
 pyvenv.cfg
 Incident_ranking_function.zip
 
-OUTPUT/*
-!OUTPUT/_dev_tests
+output/*
+!output/_dev_tests

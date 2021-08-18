@@ -176,3 +176,15 @@ def get_incident_delay(traffic_message: Et.Element,
     # most probably means this incident does not have any delay (e.g. all CLOSURES)
     except AttributeError:
         return -100
+
+
+def get_incident_expiry(traffic_message: Et.Element,
+                        namespaces: dict,
+                        ns_mes_mng: str) -> float:
+    try:
+        message_management = traffic_message.find(f"{ns_mes_mng}messageManagement", namespaces)
+        expires_minutes = message_management.find(f"{ns_mes_mng}expiresIn", namespaces)
+        expires_days = int(expires_minutes.text) / 60 / 24
+        return round(expires_days, 5)
+    except AttributeError:
+        return -100

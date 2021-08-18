@@ -1,6 +1,6 @@
 from xml_parser import (register_all_namespaces, get_incident_key, get_incident_pos,
                         get_incident_event, get_incident_frc, get_incident_delay,
-                        order_relevant_namespaces)
+                        get_incident_expiry, order_relevant_namespaces)
 from scores_calculator import (distance_between, calc_rank, ccp_string_to_tuple,
                                filter_out_function, calc_distance_score, calc_event_score,
                                calc_frc_score, calc_delay_score, calc_radius_boost_score)
@@ -95,6 +95,7 @@ def main():
 
     # create pandas dataframe for collecting scores and sorting/limiting output file
     dataframe = pd.DataFrame(columns=["incident_key", "filter_out",
+                                      "expiry(days)",
                                       "distance", "distance_score", "radius_boost_score",
                                       "event", "event_score",
                                       "frc", "frc_score",
@@ -126,6 +127,8 @@ def main():
                                                 relevant_ns_order[0],
                                                 relevant_ns_order[5])
             dataframe.at[number, "delay"] = incident_delay
+        incident_expiry = get_incident_expiry(traffic_message, namespaces, relevant_ns_order[1])
+        dataframe.at[number, "expiry(days)"] = incident_expiry
 
         # first messages filtering based on distance and FRC/event type
         filter_out = filter_out_function(distance,
@@ -197,6 +200,8 @@ def main():
 
     end_time = perf_counter()
     print(f"\nScript finished in: {end_time - start_time} seconds")
+    print("\nNumber of incidents in output .xml: " + str(dataframe_sorted["incident_key"].count()) +
+          "\nLimit was: " + str(input_info["limit"]))
 
 
 if __name__ == "__main__":

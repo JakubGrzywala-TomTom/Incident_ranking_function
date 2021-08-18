@@ -48,7 +48,7 @@ TTI .xml consists of metadata and set of <trafficMessage>, which hold tags used 
     * either \<LowerLeft\>
     * or \<UpperRight\> (one which is closer to ccp), if n/a
 2. From \<location\> -> \<locationDescription\> -> \<startLocation\>, if n/a
-3. From \<location\> -> <OpenLR> -> <XMLLocationReference> ->:
+3. From \<location\> -> \<OpenLR\> -> \<XMLLocationReference\> ->:
     * \<LineLocationReference\> -> \<LocationReferencePoint\> -> \<Coordinates\>
     * \<PointLocationReference\> -> \<PointAlongLine\> -> \<LocationReferencePoint\> -> \<Coordinates\>
 
@@ -84,6 +84,13 @@ From \<event\> -> \<effectInfo\> -> \<absoluteDelaySeconds\>
 Outcome will be integer:
 * delay in seconds
 * -100, means that message did not have a delay info, most probably completely correctly
+
+### 2.6. Expiry info ###
+From \<messageManagement\> -> \<expiresIn\>
+
+Outcome will be float:
+* amount of days in which message expires,
+* -100 if amount was not found (but for no there was no such case, and amount was always positive)
 
 ___
 

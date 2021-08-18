@@ -69,15 +69,19 @@ def main():
         exit()
 
     # load TTI XML file
-    xml_file = input_info["XML_file"]
-    # TODO: try with exception when file is not found
-    if str(xml_file).endswith(".xml"):
-        tree = Et.parse(join(output_work_directory, xml_file))
-        namespaces = register_all_namespaces(join(output_work_directory, xml_file))
-    else:
-        tree = Et.parse(join(output_work_directory, xml_file + ".xml"))
-        namespaces = register_all_namespaces(join(output_work_directory, xml_file + ".xml"))
-    root = tree.getroot()
+    try:
+        xml_file = str(input_info["XML_file"])
+        if str(xml_file).endswith(".xml"):
+            tree = Et.parse(join(output_work_directory, xml_file))
+            namespaces = register_all_namespaces(join(output_work_directory, xml_file))
+        else:
+            tree = Et.parse(join(output_work_directory, xml_file + ".xml"))
+            namespaces = register_all_namespaces(join(output_work_directory, xml_file + ".xml"))
+        root = tree.getroot()
+    except FileNotFoundError:
+        print(f"TTI .xml file specified in input.json was not found in this folder: {output_work_directory}."
+              f"\nMight be that you there's a typo in XML_file object in input.json.")
+        exit()
 
     # create namespaces lists to dynamically assign keys to xml parsing functions
     ns_keys = tuple(namespaces.keys())
@@ -163,6 +167,8 @@ def main():
         print("\rCalculated scores: " + str(number + 1) + " / " + str(traffic_messages_number), end='', flush=True)
 
     # save unsorted incidents with scores in the csv
+    if xml_file.endswith(".xml"):
+        xml_file = xml_file[:-4]
     dataframe.to_csv(join(output_work_directory, xml_file + "_all_scores.csv"), encoding='utf-8')
 
     # omit all excluded messages

@@ -92,6 +92,14 @@ Outcome will be float:
 * amount of days in which message expires,
 * -100 if amount was not found (but for no there was no such case, and amount was always positive)
 
+### 2.7. Start time ###
+From \<event\> -> \<tmcEvent\> -> \<startTimeUTC\>
+
+Outcome will be string:
+* start datetime of message
+* "Error" if not found (active messages usually (or in every case) do not have startTimeUTC)
+
+
 ___
 
 ## 3. Score types ##
@@ -100,6 +108,9 @@ Decides either message should be taken into account.
 * in inner radius EXCLUDES messages with ceratin FRCs given on a list "inn_r" (delimited with ",", no space)
 * in outer radius EXCLUDES messages with ceratin FRCs given on a list "out_r"
 * outside of outer radius: INCLUDES only messages given on a "3rd_r_frcs" and  "3rd_r_events" lists (e.g. only CLOSURES on low frcs should be left)
+* ADDITIONALLY:
+* EXCLUDES messages with event type listed in "excluded_completely" parameter
+* EXCLUDES messages that have a startTimeUTC attribute and it is greater than file creationTimeUTC (from metadata), which means they are not active, future events
 
 Outcome: boolean, decides whether to:
 * filter out a message (True)

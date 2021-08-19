@@ -1,9 +1,11 @@
 from xml_parser import (register_all_namespaces, get_incident_key, get_incident_pos,
                         get_incident_event, get_incident_frc, get_incident_delay,
-                        get_incident_expiry, order_relevant_namespaces)
+                        get_incident_expiry, get_incident_starttime, get_file_creationtime,
+                        order_relevant_namespaces)
 from scores_calculator import (distance_between, calc_rank, ccp_string_to_tuple,
                                filter_out_function, calc_distance_score, calc_event_score,
                                calc_frc_score, calc_delay_score, calc_radius_boost_score)
+from converter import string_to_datetime
 
 from json import load
 from os.path import join, dirname, abspath, exists, sep
@@ -90,12 +92,14 @@ def main():
 
     # assign trafficMessages to variable
     # no matter what is the "nsX:" of traffic message, on relevant_ns_order it will always be index 0
+    meta_data = root.find(f"{relevant_ns_order[0]}metaData", namespaces)
+    file_creation_dt = string_to_datetime(get_file_creationtime(meta_data, namespaces, relevant_ns_order[0]))
     traffic_messages = root.findall(f"{relevant_ns_order[0]}trafficMessage", namespaces)
     traffic_messages_number = len(traffic_messages)
 
     # create pandas dataframe for collecting scores and sorting/limiting output file
     dataframe = pd.DataFrame(columns=["incident_key", "filter_out",
-                                      "expiry(days)",
+                                      "expiry(days)", "start_time_utc",
                                       "distance", "distance_score", "radius_boost_score",
                                       "event", "event_score",
                                       "frc", "frc_score",
@@ -129,6 +133,12 @@ def main():
             dataframe.at[number, "delay"] = incident_delay
         incident_expiry = get_incident_expiry(traffic_message, namespaces, relevant_ns_order[1])
         dataframe.at[number, "expiry(days)"] = incident_expiry
+        incident_starttime_str = get_incident_starttime(traffic_message,
+                                                        namespaces,
+                                                        relevant_ns_order[0],
+                                                        relevant_ns_order[6])
+        dataframe.at[number, "start_time_utc"] = incident_starttime_str
+        incident_starttime_dt = string_to_datetime(incident_starttime_str)
 
         # first messages filtering based on distance and FRC/event type
         filter_out = filter_out_function(distance,
@@ -136,7 +146,9 @@ def main():
                                          input_info["outer_radius"],
                                          incident_frc,
                                          incident_event,
-                                         input_info["filtering_function"])
+                                         input_info["filtering_function"],
+                                         file_creation_dt,
+                                         incident_starttime_dt)
         dataframe.at[number, "filter_out"] = filter_out
 
         # calculate and collect scores

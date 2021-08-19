@@ -8,6 +8,7 @@ useful_namespaces = {
     "locationDescription": "http://www.tomtom.com/service/common/LocDescr",   # 3
     "eventDescription": "http://www.tomtom.com/service/common/EventAdt",      # 4
     "effectInfo": "http://www.tomtom.com/service/common/effect",              # 5
+    "tmc": "http://www.tomtom.com/service/common/TmcEv",                      # 6
 }
 
 
@@ -188,3 +189,26 @@ def get_incident_expiry(traffic_message: Et.Element,
         return round(expires_days, 5)
     except AttributeError:
         return -100
+
+
+def get_incident_starttime(traffic_message: Et.Element,
+                           namespaces: dict,
+                           ns_main: str,
+                           ns_tmc: str) -> str:
+    try:
+        event = traffic_message.find(f"{ns_main}event", namespaces)
+        tmc_event = event.find(f"{ns_tmc}tmcEvent", namespaces)
+        start_time_utc = tmc_event.find(f"{ns_tmc}startTimeUTC", namespaces)
+        return start_time_utc.text
+    except AttributeError:
+        return "Error"
+
+
+def get_file_creationtime(meta_data: Et.Element,
+                          namespaces: dict,
+                          ns_main: str) -> str:
+    try:
+        creation_time_UTC = meta_data.find(f"{ns_main}creationTimeUTC", namespaces)
+        return creation_time_UTC.text
+    except AttributeError:
+        return "Error"

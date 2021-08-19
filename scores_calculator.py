@@ -1,4 +1,5 @@
 from math import degrees, atan2, sin, cos, radians
+from datetime import datetime
 
 from geopy.distance import geodesic
 
@@ -20,7 +21,9 @@ def filter_out_function(distance_between_points: float,
                         outer_radius: int,
                         frc: str,
                         event:str,
-                        categories: dict) -> bool:
+                        categories: dict,
+                        file_creation_dt: datetime,
+                        incident_starttime_dt: datetime) -> bool:
 
     # instantiating those in "incident_ranking_function" would be much more efficient
     inn_r_frc_list = list_from_string(str(categories["inn_r"]))
@@ -29,8 +32,10 @@ def filter_out_function(distance_between_points: float,
     third_r_event_list = list_from_string(str(categories["3rd_r_events"]))
     excluded_completely = list_from_string(str(categories["excluded_completely"]))
 
+    # One colossal, enormous, gigantic if XD
     if (
         (event in excluded_completely)
+        or (file_creation_dt < incident_starttime_dt)
         or ((distance_between_points <= inner_radius) and (frc in inn_r_frc_list))
         or ((distance_between_points > inner_radius) and (distance_between_points <= outer_radius) and (frc in out_r_frc_list))
         or ((distance_between_points > outer_radius) and not ((frc in third_r_frc_list) and (event in third_r_event_list)))

@@ -7,13 +7,56 @@ Both original files and ranked, limited files can be visualized in Cancun (https
 
 ## 1. Setup ##
 
-### 1.1. Script setup: ###
+### 1.1. Script setup (when working with PyCharm on Win 10): ###
+Download and install:
 * Python in at least 3.8 version (script written in [3.9.2](https://www.python.org/downloads/release/python-392/))
 * Git version control system: https://git-scm.com/download/win
-* `git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function`
-* `cd Incident_ranking_function`
-* pandas and geopy external libraries installed (both in requirements.txt) by `pip install -r requirements.txt`
-* **modification in xml standard library** (commenting out/removing two first lines in register_namespace function (line 1006 and 1007) in xml.etree.ElementTree) for ability to register xml namespaces called "ns*"
+
+In CMD confirm installed python and git:  
+`python --version` / `py --version`  
+`git --version`
+
+If versions are not displayed then add those lines to Environment variables table (if you used default install directories):  
+C:\Users\<username>\AppData\Local\Programs\Python\Python39\Scripts  
+C:\Users\<username>\AppData\Local\Programs\Python\Python39  
+C:\Program Files\Git\cmd  
+C:\Program Files\Git\bin\git.exe
+
+If new to GIT, then set up your credentials with:  
+`git config --global user.name "\<Name\> \<Surname\>"`  
+`git config --global user.email \<name\>.\<surname\>@tomtom.com`
+
+Change directory to that in which you want folder with Incident Ranking Function, e.g.:  
+`cd PycharmProjects` (being in the C:\Users\<username> already)
+
+Clone github repo:  
+`git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function.git`
+
+Rename cloned folder (top one) in file explorer (randomly, can be "Incident_ranking_function2" or whatever).
+
+Create new PyCharm Project called the same as cloned repo originally -> "Incident_ranking_function".  
+Project should be with new virtual environment (Virtualenv). Set up location of venv the same as whole project.  
+Base interpreter: choose python 3.9.  
+Wait till project setup is complete.
+
+Go to renamed, cloned folder.  
+Cut it's content together with hidden files and folders.  
+Paste all copied files into PyCharm project directory (overwrite all existing if asked).  
+Delete cloned folder (that's only what is left).
+
+Move to Pycharm: make sure that new files are visible in "project" tab.  
+Make sure that on upper ribbon there is "Git" 3rd from right (should be detected).  
+In "Terminal" (narrow ribbon on the bottom of screen in PyCharm) if needed activate virtual environment (write: `Scripts\activate`). When virtual env is activated then before path in terminal there should be project's name in parentheses, in this case: `(Incident_ranking_function) C:\Users\<username>\etc`  
+Install needed python libraries by writing: `pip install -r requirements.txt`
+
+**Modification in xml standard library**  
+In PyCharm project:
+* In "Project" tab (left side) find "External Libraries" -> "Lib" -> "xml" -> "etree" -> "ElementTree.py"
+* open it
+* comment out ("#" before line) two first lines in register_namespace function (line 1006 and 1007) in xml.etree.ElementTree to be able to register xml namespaces called "ns*"
+* PyCharm should save file itself
+
+
 
 ### 1.2. Script takes as input: ###
 * One of TTI output .xml files from [Orlando Datastore](http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/).   

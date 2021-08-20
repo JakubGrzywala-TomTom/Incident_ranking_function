@@ -1,64 +1,66 @@
-# Incident ranking function #
+# Incident ranking function
 
-This script takes a given TTI_External (or other) output file from given country (from this address: http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/) and ranks importance of every message in there 
-based on made up car position and series of conditions, to in the end produce short list, limited to given number of messages, of most important
+This script takes a given TTI_External output file from given country (from this address: http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/) and ranks importance of every message 
+based on made up car position and series of conditions, to in the end produce shorter .xml, limited to given number of most important
 messages from car position perspective.
 Both original files and ranked, limited files can be visualized in Cancun (https://cancun.tomtomgroup.com/)
 
-## 1. Setup ##
+## 1. Setup
 
-### 1.1. Script setup (when working with PyCharm on Win 10): ###
+### 1.1. Script setup (when working with PyCharm on Win 10):
 Download and install:
 * Python in at least 3.8 version (script written in [3.9.2](https://www.python.org/downloads/release/python-392/))
 * Git version control system: https://git-scm.com/download/win
 
-In CMD confirm installed python and git:  
+**In CMD:**
+Confirm installed python and git:  
 `python --version` / `py --version`  
 `git --version`
 
 If versions are not displayed then add those lines to Environment variables table (if you used default install directories):  
-C:\Users\<username>\AppData\Local\Programs\Python\Python39\Scripts  
-C:\Users\<username>\AppData\Local\Programs\Python\Python39  
+C:\Users\\\<username\>\AppData\Local\Programs\Python\Python39\Scripts  
+C:\Users\\\<username\>\AppData\Local\Programs\Python\Python39  
 C:\Program Files\Git\cmd  
 C:\Program Files\Git\bin\git.exe
 
 If new to GIT, then set up your credentials with:  
-`git config --global user.name "\<Name\> \<Surname\>"`  
-`git config --global user.email \<name\>.\<surname\>@tomtom.com`
+`git config --global user.name "<Name> <Surname>"`  
+`git config --global user.email <name>.<surname>@tomtom.com`
 
 Change directory to that in which you want folder with Incident Ranking Function, e.g.:  
-`cd PycharmProjects` (being in the C:\Users\<username> already)
+`cd PycharmProjects` (being in the C:\Users\\\<username\>\ already)
 
 Clone github repo:  
 `git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function.git`
 
-Rename cloned folder (top one) in file explorer (randomly, can be "Incident_ranking_function2" or whatever).
+**In file explorer:**
+Rename cloned folder (top one) randomly, can be "Incident_ranking_function2" or whatever.
 
+**Open PyCharm:**
 Create new PyCharm Project called the same as cloned repo originally -> "Incident_ranking_function".  
 Project should be with new virtual environment (Virtualenv). Set up location of venv the same as whole project.  
-Base interpreter: choose python 3.9.  
+Base interpreter: choose python 3.9 (3.8 at least).  
 Wait till project setup is complete.
 
+**In file explorer:**
 Go to renamed, cloned folder.  
 Cut it's content together with hidden files and folders.  
-Paste all copied files into PyCharm project directory (overwrite all existing if asked).  
-Delete cloned folder (that's only what is left).
+Paste all cut files into PyCharm project directory (overwrite all existing if asked).  
+Delete cloned folder.
 
-Move to Pycharm: make sure that new files are visible in "project" tab.  
+**Move to Pycharm:**
+Make sure that new files are visible in "project" tab.  
 Make sure that on upper ribbon there is "Git" 3rd from right (should be detected).  
 In "Terminal" (narrow ribbon on the bottom of screen in PyCharm) if needed activate virtual environment (write: `Scripts\activate`). When virtual env is activated then before path in terminal there should be project's name in parentheses, in this case: `(Incident_ranking_function) C:\Users\<username>\etc`  
-Install needed python libraries by writing: `pip install -r requirements.txt`
+Install needed python libraries by writing in project's root: `pip install -r requirements.txt`
 
 **Modification in xml standard library**  
 In PyCharm project:
-* In "Project" tab (left side) find "External Libraries" -> "Lib" -> "xml" -> "etree" -> "ElementTree.py"
-* open it
+* In "Project" tab (left side) find and open "External Libraries" -> "Lib" -> "xml" -> "etree" -> "ElementTree.py"
 * comment out ("#" before line) two first lines in register_namespace function (line 1006 and 1007) in xml.etree.ElementTree to be able to register xml namespaces called "ns*"
-* PyCharm should save file itself
+* PyCharm should save file itself  
 
-
-
-### 1.2. Script takes as input: ###
+### 1.2. Script takes as input:
 * One of TTI output .xml files from [Orlando Datastore](http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/).   
 * Input.json, which is collection of info needed for ranking messages, e.g.:
     * current car position (ccp)
@@ -72,7 +74,7 @@ In PyCharm project:
 > 
 >`py incident-ranking-function -f output\<your-folder-name>`
 
-### 1.3. Starting script (after setting up what it needs) ###
+### 1.3. Starting script (after setting up what it needs):
 * TTI output .xml and input.json configuration file in one of "OUTPUT" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
   * `.\Scripts\activate` to activate Python virtual environment with libraries and modifications described in 1.2. 
@@ -83,10 +85,10 @@ In PyCharm project:
 
 ___
 
-## 2. TTI .xml tag's values used for calculating scores ##
+## 2. TTI .xml tag's values used for calculating scores
 TTI .xml consists of metadata and set of <trafficMessage>, which hold tags used below.
 
-### 2.1. Incident coordinates ###
+### 2.1. Incident coordinates
 1. From \<location\> -> \<locationGeneral\> -> \<boundingBox\> ->:
     * either \<LowerLeft\>
     * or \<UpperRight\> (one which is closer to ccp), if n/a
@@ -100,42 +102,42 @@ Outcome will be:
 * tuple of lat & lon
 * ("Error", "Error") tuple, if coordinates not found
 
-### 2.2. Event info ###
+### 2.2. Event info
 From \<messageManagement\> -> \<contentType\>
 
 Outcome will be string containing:
 * event name
 * "Error" if event name not found
 
-### 2.3. Jam priority ###
+### 2.3. Jam priority
 From \<event\> -> \<eventDescription\> -> \<alertCCodes\> -> \<eventCode\>
 
 Outcome will be string containing:
 * jam priority
 * "Error" if not found
 
-### 2.4. FRC info ###
+### 2.4. FRC info
 From \<location\> -> \<locationGeneral\> -> \<functionalRoadClass\>
 
 Outcome will be string containing:
 * frc info
 * "Error" if not found
 
-### 2.5. Delay info ### 
+### 2.5. Delay info
 From \<event\> -> \<effectInfo\> -> \<absoluteDelaySeconds\>
 
 Outcome will be integer:
 * delay in seconds
 * -100, means that message did not have a delay info, most probably completely correctly
 
-### 2.6. Expiry info ###
+### 2.6. Expiry info
 From \<messageManagement\> -> \<expiresIn\>
 
 Outcome will be float:
 * amount of days in which message expires,
 * -100 if amount was not found (but for no there was no such case, and amount was always positive)
 
-### 2.7. Start time ###
+### 2.7. Start time
 From \<event\> -> \<tmcEvent\> -> \<startTimeUTC\>
 
 Outcome will be string:
@@ -145,8 +147,8 @@ Outcome will be string:
 
 ___
 
-## 3. Score types ##
-### 3.1. Filtering function ###
+## 3. Score types
+### 3.1. Filtering function
 Decides either message should be taken into account.
 * in inner radius EXCLUDES messages with ceratin FRCs given on a list "inn_r" (delimited with ",", no space)
 * in outer radius EXCLUDES messages with ceratin FRCs given on a list "out_r"
@@ -159,7 +161,7 @@ Outcome: boolean, decides whether to:
 * filter out a message (True)
 * or not (False).
 
-### 3.2. Distance score ###
+### 3.2. Distance score
 Formula for the score is: 1 - distance between ccp and incident / outer radius.
 Output value ranges between 1 (highest score) until -X (largest registered was -4.7, depends on how large the country is).
 
@@ -167,7 +169,7 @@ Outcome: float, either with:
 * distance score
 * or -100 when distance could not been calculated. 
 
-### 3.3. Radius boost score ###
+### 3.3. Radius boost score
 Output ranges from 1 to 0.
 3 levels which can receive different scores:
 * Messages within certain radius (4 km at the moment, can be any integer up to inner radius, has to be put between " ")
@@ -178,7 +180,7 @@ Outcome: float, either with:
 * radius boost score value connected to certain category in input .json file 
 * or -100 when distance could not been calculated. 
 
-### 3.4. Event score ###
+### 3.4. Event score
 Output ranges from 1 to 0.
 Different events receive different scores, e.g.:
 * CLOSURES 1
@@ -192,7 +194,7 @@ Outcome: float, either with:
 
 In the future score will be enhanced with treating Jams depending on their severity.
 
-### 3.5. FRC score ###
+### 3.5. FRC score
 Output ranges from 1 to 0.
 Different FRCs receive different scores, e.g.:
 * FRC1 1
@@ -204,7 +206,7 @@ Outcome: float, either with:
 * score value connected to certain category in input .json file
 * -100 if getting the event info from .xml was not possible
 
-### 3.6. Delay score ###
+### 3.6. Delay score
 Output ranges from 1 to 0.
 Bigger the delay, more points the message gets.
 
@@ -213,5 +215,5 @@ Outcome: float, either with:
 * 0 if event type is not excluded and does not have a delay either
 * score value connected to certain category in input .json file
 
-### 3.7 Weights ###
+### 3.7 Weights
 Weights for testing different balance between 3.2 - 3.6 scores (Filtering function works first, independently)

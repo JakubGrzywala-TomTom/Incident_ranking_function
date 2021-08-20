@@ -12,7 +12,7 @@ Download and install:
 * Python in at least 3.8 version (script written in [3.9.2](https://www.python.org/downloads/release/python-392/))
 * Git version control system: https://git-scm.com/download/win
 
-**In CMD:**
+**In CMD:**  
 Confirm installed python and git:  
 `python --version` / `py --version`  
 `git --version`
@@ -33,22 +33,22 @@ Change directory to that in which you want folder with Incident Ranking Function
 Clone github repo:  
 `git clone https://github.com/JakubGrzywala-TomTom/Incident_ranking_function.git`
 
-**In file explorer:**
+**In file explorer:**  
 Rename cloned folder (top one) randomly, can be "Incident_ranking_function2" or whatever.
 
-**Open PyCharm:**
+**Open PyCharm:**  
 Create new PyCharm Project called the same as cloned repo originally -> "Incident_ranking_function".  
 Project should be with new virtual environment (Virtualenv). Set up location of venv the same as whole project.  
 Base interpreter: choose python 3.9 (3.8 at least).  
 Wait till project setup is complete.
 
-**In file explorer:**
+**In file explorer:**  
 Go to renamed, cloned folder.  
 Cut it's content together with hidden files and folders.  
 Paste all cut files into PyCharm project directory (overwrite all existing if asked).  
 Delete cloned folder.
 
-**Move to Pycharm:**
+**Move to PyCharm:**  
 Make sure that new files are visible in "project" tab.  
 Make sure that on upper ribbon there is "Git" 3rd from right (should be detected).  
 In "Terminal" (narrow ribbon on the bottom of screen in PyCharm) if needed activate virtual environment (write: `Scripts\activate`). When virtual env is activated then before path in terminal there should be project's name in parentheses, in this case: `(Incident_ranking_function) C:\Users\<username>\etc`  

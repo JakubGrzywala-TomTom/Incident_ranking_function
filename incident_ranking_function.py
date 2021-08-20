@@ -212,8 +212,21 @@ def main():
 
     end_time = perf_counter()
     print(f"\nScript finished in: {end_time - start_time} seconds")
-    print("\nNumber of incidents in output .xml: " + str(dataframe_sorted["incident_key"].count()) +
-          "\nLimit was: " + str(input_info["limit"]))
+
+    # Couple of stats:
+    print(
+        "\nNumber of incidents in output .xml: " + str(dataframe_sorted["incident_key"].count())
+        + "\nLimit was: " + str(input_info["limit"])
+        + "\nInner radius: " + str(input_info["inner_radius"])
+        + "\nOuter radius: " + str(input_info["outer_radius"])
+    )
+    print("\nOUTPUT XML STATISTICS:")
+    print("\nDistance [km]:")
+    print(dataframe_sorted.agg(
+        {"distance": ["min", "max", "mean", "median"]}
+    ))
+    print("\nEvents: \n" + str(dataframe_sorted["event"].value_counts()))
+    print("\nFRCs: \n" + str(dataframe_sorted["frc"].value_counts()))
 
 
 if __name__ == "__main__":

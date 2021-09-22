@@ -11,7 +11,7 @@ class Test(TestCase):
         berlin_center = (52.52343, 13.41144)
         wrong_coords = ("Error", "Error")
 
-        # when incident corrdinates were not available in TTI output file
+        # when incident coordinates were not available in TTI output file
         distance = distance_between(berlin_center, wrong_coords)
 
         # then distance should be -100 (error)
@@ -35,7 +35,7 @@ class Test(TestCase):
         siegessaule = (52.514606631731546, 13.350163634992205)
 
         # when counting straight line distance between them
-        # and calucalating distance score basec on distance and outer_radius == 60 km
+        # and calculating distance score based on distance and outer_radius == 60 km
         distance = distance_between(brandenburg_tor, siegessaule)
         distance_score = calc_distance_score(distance, 60)
 
@@ -48,7 +48,7 @@ class Test(TestCase):
         wrong_coords = ("Error", "Error")
 
         # when counting straight line distance between them
-        # and calucalating distance score basec on distance and outer_radius == 60 km
+        # and calculating distance score based on distance and outer_radius == 60 km
         distance = distance_between(brandenburg_tor, wrong_coords)
         distance_score = calc_distance_score(distance, 60)
 
@@ -130,8 +130,8 @@ class Test(TestCase):
         }
 
         # when an incident had FRC1
-        wrong_frc = "FRC1"
-        frc_score = calc_frc_score(wrong_frc, frc_categories)
+        frc = "FRC1"
+        frc_score = calc_frc_score(frc, frc_categories)
 
         # frc_score should be 0.9
         self.assertEqual(frc_score, 0.9)
@@ -163,8 +163,8 @@ class Test(TestCase):
         }
 
         # when an incident had 0 delay info
-        wrong_delay = 0
-        delay_score = calc_delay_score(wrong_delay, delay_categories)
+        delay = 0
+        delay_score = calc_delay_score(delay, delay_categories)
 
         # frc_score should be 0
         self.assertEqual(delay_score, 0.1)
@@ -179,8 +179,8 @@ class Test(TestCase):
         }
 
         # when an incident had 419 seconds delay
-        wrong_delay = 419
-        delay_score = calc_delay_score(wrong_delay, delay_categories)
+        delay = 419
+        delay_score = calc_delay_score(delay, delay_categories)
 
         # frc_score should be 0.0
         self.assertEqual(delay_score, 0.2)
@@ -211,9 +211,9 @@ class Test(TestCase):
         }
 
         # when an incident had 3 km distance to ccp
-        wrong_distance = 3
+        distance = 3
         inner_radius = 20
-        radius_boost_score = calc_radius_boost_score(wrong_distance, inner_radius, radius_boost_categories)
+        radius_boost_score = calc_radius_boost_score(distance, inner_radius, radius_boost_categories)
 
         # radius boost score should be 1
         self.assertEqual(radius_boost_score, 1)
@@ -227,9 +227,30 @@ class Test(TestCase):
         }
 
         # when an incident had 15 km distance to ccp
-        wrong_distance = 15
+        distance = 15
         inner_radius = 20
-        radius_boost_score = calc_radius_boost_score(wrong_distance, inner_radius, radius_boost_categories)
+        radius_boost_score = calc_radius_boost_score(distance, inner_radius, radius_boost_categories)
 
         # radius boost score should be 0.5
         self.assertEqual(radius_boost_score, 0.5)
+
+    # BEARING PREPARATION
+    def test_given_bearing_1_should_return_left_range_316(self):
+        # given cpp to destination bearing 1
+        ccp_dest_bearing = 1
+
+        # when calculating range to leave messages only in it (and disregard those outside)
+        bearing_filter_values = prepare_bearing_filter_values(ccp_dest_bearing, 45)
+
+        # "left" value should be 316 (not -44)
+        self.assertEqual(316, bearing_filter_values[0])
+
+    def test_given_bearing_320_should_return_right_range_5(self):
+        # given cpp to destination bearing 316
+        ccp_dest_bearing = 320
+
+        # when calculating range to leave messages only in it (and disregard those outside)
+        bearing_filter_values = prepare_bearing_filter_values(ccp_dest_bearing, 45)
+
+        # "left" value should be 316 (not -44)
+        self.assertEqual(5, bearing_filter_values[1])

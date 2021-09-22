@@ -1,29 +1,23 @@
+from converters import list_from_string
+
 from math import degrees, atan2, sin, cos, radians
 from datetime import datetime
 
 from geopy.distance import geodesic
+from shapely.geometry import LineString, Point
+from shapely.ops import nearest_points
 
 
-# function parsing current car position from string in input.json
-def ccp_string_to_tuple(ccp: str) -> tuple:
-    lat = float(ccp.split(",")[0].strip())
-    lon = float(ccp.split(",")[1].strip())
-    return lat, lon
-
-
-def list_from_string(string: str) -> list:
-    frc_list = string.split(",")
-    return [str(frc.strip().upper()) for frc in frc_list]
-
-
+# TRUE -> filter out the message, FALSE -> leave it
 def filter_out_function(distance_between_points: float,
                         inner_radius: int,
                         outer_radius: int,
                         frc: str,
-                        event:str,
+                        event: str,
                         categories: dict,
                         file_creation_dt: datetime,
-                        incident_starttime_dt: datetime) -> bool:
+                        incident_starttime_dt: datetime,
+                        bearing_filter: bool) -> bool:
 
     # instantiating those in "incident_ranking_function" would be much more efficient
     inn_r_frc_list = list_from_string(str(categories["inn_r"]))
@@ -35,6 +29,7 @@ def filter_out_function(distance_between_points: float,
     # One colossal, enormous, gigantic if XD
     if (
         (event in excluded_completely)
+        or bearing_filter
         or (file_creation_dt < incident_starttime_dt)
         or ((distance_between_points <= inner_radius) and (frc in inn_r_frc_list))
         or ((distance_between_points > inner_radius) and (distance_between_points <= outer_radius) and (frc in out_r_frc_list))
@@ -45,25 +40,76 @@ def filter_out_function(distance_between_points: float,
         return False
 
 
+def prepare_bearing_filter_values(ccp_dest_bearing: float,
+                                  plus_minus_range: int) -> tuple:
+    ccp_dest_bearing_left = ccp_dest_bearing - plus_minus_range
+    if ccp_dest_bearing_left < 0:
+        ccp_dest_bearing_left = 360 - abs(ccp_dest_bearing_left)
+
+    ccp_dest_bearing_right = ccp_dest_bearing + plus_minus_range
+    if ccp_dest_bearing_right > 360:
+        ccp_dest_bearing_right = ccp_dest_bearing_right - 360
+
+    return ccp_dest_bearing_left, ccp_dest_bearing_right
+
+
+# TRUE -> filter out the message, FALSE -> leave it
+def filter_out_bearing(ccp_dest_bearing: float,
+                       ccp_incident_bearing: float,
+                       bearing_filter_range: int,
+                       bearing_filter_boundaries: tuple,
+                       ccp_incident_distance: float,
+                       inner_radius: int) -> bool:
+    if ccp_incident_distance > inner_radius:
+        if ccp_dest_bearing >= (360 - abs(bearing_filter_range)) or ccp_dest_bearing <= abs(bearing_filter_range):
+            if ccp_incident_bearing >= bearing_filter_boundaries[0] or ccp_incident_bearing <= bearing_filter_boundaries[1]:
+                return False
+            else:
+                return True
+        else:
+            if bearing_filter_boundaries[0] <= ccp_incident_bearing <= bearing_filter_boundaries[1]:
+                return False
+            else:
+                return True
+    else:
+        return False
+
+
+def create_ccp_destination_line(ccp: tuple,
+                                destination: tuple) -> LineString:
+    return LineString([(ccp[1], ccp[0]), (destination[1], destination[0])])
+
+
+def find_nearest_line_part_to_incident(ccp_destination_line: LineString,
+                                       incident_pos: tuple) -> Point:
+    point = Point(incident_pos[1], incident_pos[0])
+    return nearest_points(ccp_destination_line, point)[0]
+
+
+def find_nearest_incident_end(current_pos: tuple,
+                              incident_pos: tuple,) -> tuple:
+    if not isinstance(incident_pos[0], tuple):
+        return incident_pos
+    else:
+        lower_left_distance = geodesic(current_pos, incident_pos[0], ellipsoid="WGS-84").km
+        upper_right_distance = geodesic(current_pos, incident_pos[1], ellipsoid="WGS-84").km
+        if lower_left_distance < upper_right_distance:
+            return incident_pos[0]
+        else:
+            return incident_pos[1]
+
+
 def distance_between(current_pos: tuple,
                      incident_pos: tuple) -> float:
     if isinstance(incident_pos[0], float):
         return geodesic(current_pos, incident_pos, ellipsoid="WGS-84").km
-    elif isinstance(incident_pos[0], tuple):
-        # logic for deciding which bbox coordinates are closer
-        lower_left_distance = geodesic(current_pos, incident_pos[0], ellipsoid="WGS-84").km
-        upper_right_distance = geodesic(current_pos, incident_pos[1], ellipsoid="WGS-84").km
-        if lower_left_distance < upper_right_distance:
-            return lower_left_distance
-        else:
-            return upper_right_distance
     elif incident_pos[0] == "Error":
         return float(-100)
 
 
 # taken from https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/
 def bearing_between(current_pos: tuple,
-                    incident_pos: tuple) -> float:
+                    incident_pos: tuple) -> int:
     cur_lat = radians(current_pos[0])
     cur_lon = radians(current_pos[1])
     inc_lat = radians(incident_pos[0])
@@ -71,7 +117,13 @@ def bearing_between(current_pos: tuple,
     diff_lon = inc_lon - cur_lon
     y = cos(inc_lat) * sin(diff_lon)
     x = cos(cur_lat) * sin(inc_lat) - sin(cur_lat) * cos(inc_lat) * cos(diff_lon)
-    return degrees(atan2(y, x))
+    # with "degrees(atan2(y, x))" values after 180 are with "-" and are in reverse (350 bearing is -10)
+    # it needs conversion to full 360 values
+    bearing = degrees(atan2(y, x))
+    if bearing < 0:
+        return int(360 + bearing)
+    else:
+        return int(bearing)
 
 
 # set of 5 main functions calculating each score

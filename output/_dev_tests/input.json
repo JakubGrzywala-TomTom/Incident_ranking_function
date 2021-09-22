@@ -1,15 +1,17 @@
 {
   "XML_file": "Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d",
-  "limit": 400,
+  "limit": 1200,
   "ccp": "52.52343, 13.41144",
+  "destination": "52.428755, 10.786117",
+  "bearing_filter_range": 45,
   "inner_radius": 20,
   "outer_radius": 120,
 
   "filtering_function": {
     "inn_r": "FRC7",
     "out_r": "FRC6,FRC7",
-    "3rd_r_frcs": "FRC0,FRC1",
-    "3rd_r_events": "CLOSURE",
+    "3rd_r_frcs": "FRC0,FRC1,FRC2",
+    "3rd_r_events": "CLOSURE,ROADWORKS",
     "excluded_completely": "JAM_CONDITIONAL"
   },
   "distance_score": "calculated on ccp, incident position and outer radius",

@@ -2,10 +2,12 @@ from xml_parser import (register_all_namespaces, get_incident_key, get_incident_
                         get_incident_event, get_incident_frc, get_incident_delay,
                         get_incident_expiry, get_incident_starttime, get_file_creationtime,
                         order_relevant_namespaces)
-from scores_calculator import (distance_between, calc_rank, ccp_string_to_tuple,
-                               filter_out_function, calc_distance_score, calc_event_score,
-                               calc_frc_score, calc_delay_score, calc_radius_boost_score)
-from converter import string_to_datetime
+from scores_calculator import (distance_between, bearing_between, filter_out_function,
+                               calc_distance_score, calc_event_score, calc_frc_score,
+                               calc_delay_score, calc_radius_boost_score, calc_rank,
+                               create_ccp_destination_line, find_nearest_line_part_to_incident,
+                               find_nearest_incident_end, prepare_bearing_filter_values, filter_out_bearing)
+from converters import string_to_datetime, coordinates_string_to_tuple
 
 from json import load
 from os.path import join, dirname, abspath, exists, sep
@@ -14,8 +16,8 @@ from time import perf_counter
 import sys
 import xml.etree.ElementTree as Et
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def main():
@@ -98,26 +100,46 @@ def main():
     traffic_messages_number = len(traffic_messages)
 
     # create pandas dataframe for collecting scores and sorting/limiting output file
-    dataframe = pd.DataFrame(columns=["incident_key", "filter_out",
+    dataframe = pd.DataFrame(columns=["incident_key", "incident_nearest_end_position",
                                       "expiry(days)", "start_time_utc",
                                       "distance", "distance_score", "radius_boost_score",
                                       "event", "event_score",
                                       "frc", "frc_score",
                                       "delay", "delay_score",
-                                      "ranking_score"])
+                                      "bearing", "bearing_filter_out",
+                                      "nearest_line_part_to_incident", "distance_incident_to_line",
+                                      # "route_line_distance_score",
+                                      "filter_out", "ranking_score"])
 
     # create tuple of lat and lon from coordinates string
-    current_pos = ccp_string_to_tuple(input_info["ccp"])
+    current_pos = coordinates_string_to_tuple(input_info["ccp"])
+    destination_pos = coordinates_string_to_tuple(input_info["destination"])
+    ccp_destination_line = create_ccp_destination_line(current_pos, destination_pos)
+    ccp_destination_bearing = bearing_between(current_pos, destination_pos)
+    bearing_filter_range = int(input_info["bearing_filter_range"])
+    bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
 
     for number, traffic_message in enumerate(traffic_messages):
         # collect data from xml for certain message
         dataframe.at[number, "incident_key"] = get_incident_key(traffic_message, namespaces, relevant_ns_order[1])
-        distance = distance_between(current_pos, get_incident_pos(traffic_message,
-                                                                  namespaces,
-                                                                  relevant_ns_order[0],
-                                                                  relevant_ns_order[2],
-                                                                  relevant_ns_order[3]))
-        dataframe.at[number, "distance"] = distance
+        incident_expiry = get_incident_expiry(traffic_message, namespaces, relevant_ns_order[1])
+        dataframe.at[number, "expiry(days)"] = incident_expiry
+        incident_starttime_str = get_incident_starttime(traffic_message,
+                                                        namespaces,
+                                                        relevant_ns_order[0],
+                                                        relevant_ns_order[6])
+        dataframe.at[number, "start_time_utc"] = incident_starttime_str
+        incident_starttime_dt = string_to_datetime(incident_starttime_str)
+        nearest_incident_end = find_nearest_incident_end(current_pos, get_incident_pos(traffic_message,
+                                                                                       namespaces,
+                                                                                       relevant_ns_order[0],
+                                                                                       relevant_ns_order[2],
+                                                                                       relevant_ns_order[3]))
+        dataframe.at[number, "incident_nearest_end_position"] = (str(nearest_incident_end[0])
+                                                                 + ", "
+                                                                 + str(nearest_incident_end[1]))
+        distance_incident_to_ccp = distance_between(current_pos, nearest_incident_end)
+        dataframe.at[number, "distance"] = distance_incident_to_ccp
         incident_event = get_incident_event(traffic_message, namespaces, relevant_ns_order[1])
         dataframe.at[number, "event"] = incident_event
         incident_frc = get_incident_frc(traffic_message, namespaces, relevant_ns_order[0])
@@ -131,30 +153,48 @@ def main():
                                                 relevant_ns_order[0],
                                                 relevant_ns_order[5])
             dataframe.at[number, "delay"] = incident_delay
-        incident_expiry = get_incident_expiry(traffic_message, namespaces, relevant_ns_order[1])
-        dataframe.at[number, "expiry(days)"] = incident_expiry
-        incident_starttime_str = get_incident_starttime(traffic_message,
-                                                        namespaces,
-                                                        relevant_ns_order[0],
-                                                        relevant_ns_order[6])
-        dataframe.at[number, "start_time_utc"] = incident_starttime_str
-        incident_starttime_dt = string_to_datetime(incident_starttime_str)
+        bearing = bearing_between(current_pos, nearest_incident_end)
+        dataframe.at[number, "bearing"] = bearing
 
-        # first messages filtering based on distance and FRC/event type
-        filter_out = filter_out_function(distance,
+        # first messages filtering based on distance and FRC/event type, etc.
+        bearing_filter = filter_out_bearing(ccp_destination_bearing,
+                                            bearing,
+                                            bearing_filter_range,
+                                            bearing_filter_boundaries,
+                                            distance_incident_to_ccp,
+                                            input_info["inner_radius"])
+        dataframe.at[number, "bearing_filter_out"] = bearing_filter
+
+        # TODO: problem with tuple -> Shapley geometry conversion
+        if not bearing_filter:
+            nearest_line_part_to_incident = find_nearest_line_part_to_incident(ccp_destination_line,
+                                                                               nearest_incident_end)
+            dataframe.at[number, "nearest_line_part_to_incident"] = (str(nearest_line_part_to_incident.y)
+                                                                     + ", "
+                                                                     + str(nearest_line_part_to_incident.x))
+
+            distance_incident_to_ccp_dest_line = distance_between((nearest_line_part_to_incident.y,
+                                                                   nearest_line_part_to_incident.x),
+                                                                  nearest_incident_end)
+            dataframe.at[number, "distance_incident_to_line"] = round(distance_incident_to_ccp_dest_line, 3)
+
+        filter_out = filter_out_function(distance_incident_to_ccp,
                                          input_info["inner_radius"],
                                          input_info["outer_radius"],
                                          incident_frc,
                                          incident_event,
                                          input_info["filtering_function"],
                                          file_creation_dt,
-                                         incident_starttime_dt)
+                                         incident_starttime_dt,
+                                         bearing_filter)
         dataframe.at[number, "filter_out"] = filter_out
 
         # calculate and collect scores
-        distance_score = calc_distance_score(distance, input_info["outer_radius"])
+        # TODO: scores functions should be surrounded with `if filter_out then not count them`
+        #  left for now to make sure that filtering works fine
+        distance_score = calc_distance_score(distance_incident_to_ccp, input_info["outer_radius"])
         dataframe.at[number, "distance_score"] = distance_score
-        radius_boost_score = calc_radius_boost_score(distance,
+        radius_boost_score = calc_radius_boost_score(distance_incident_to_ccp,
                                                      input_info["inner_radius"],
                                                      input_info["radius_boost_score"])
         dataframe.at[number, "radius_boost_score"] = radius_boost_score
@@ -211,7 +251,11 @@ def main():
                default_namespace=None)
 
     end_time = perf_counter()
-    print(f"\nScript finished in: {end_time - start_time} seconds")
+    print(f"\nScript finished in: {end_time - start_time} seconds"
+          + f'\n\nCCP: {input_info["ccp"]}'
+          + f'\nDestination: {input_info["destination"]}'
+          + f'\nCCP -> destination bearing: {ccp_destination_bearing}'
+          + f'\nCCP -> destination distance [km]: {round(distance_between(current_pos, destination_pos), 3)}')
 
     # Couple of stats:
     print(
@@ -219,14 +263,12 @@ def main():
         + "\nLimit was: " + str(input_info["limit"])
         + "\nInner radius: " + str(input_info["inner_radius"])
         + "\nOuter radius: " + str(input_info["outer_radius"])
+        + "\n\nOUTPUT XML STATISTICS:"
+        + "\n\nDistance [km]: \n"
+        + str(dataframe_sorted.agg({"distance": ["min", "max", "mean", "median"]}))
+        + "\n\nEvents: \n" + str(dataframe_sorted["event"].value_counts())
+        + "\n\nFRCs: \n" + str(dataframe_sorted["frc"].value_counts())
     )
-    print("\nOUTPUT XML STATISTICS:")
-    print("\nDistance [km]:")
-    print(dataframe_sorted.agg(
-        {"distance": ["min", "max", "mean", "median"]}
-    ))
-    print("\nEvents: \n" + str(dataframe_sorted["event"].value_counts()))
-    print("\nFRCs: \n" + str(dataframe_sorted["frc"].value_counts()))
 
 
 if __name__ == "__main__":

@@ -1,13 +1,14 @@
+from converters import string_to_datetime, coordinates_string_to_tuple
+from scores_calculator import (calc_distance_score, calc_event_score, calc_frc_score,
+                               calc_delay_score, calc_radius_boost_score, calc_ccp_dest_line_distance_score,
+                               filter_out_bearing, prepare_bearing_filter_values,
+                               filter_out_function, calc_rank)
+from spatial_operations import (distance_between, bearing_between, create_ccp_destination_line,
+                                find_nearest_line_part_to_incident, find_nearest_incident_end)
 from xml_parser import (register_all_namespaces, get_incident_key, get_incident_pos,
                         get_incident_event, get_incident_frc, get_incident_delay,
                         get_incident_expiry, get_incident_starttime, get_file_creationtime,
                         order_relevant_namespaces)
-from scores_calculator import (distance_between, bearing_between, filter_out_function,
-                               calc_distance_score, calc_event_score, calc_frc_score,
-                               calc_delay_score, calc_radius_boost_score, calc_rank,
-                               create_ccp_destination_line, find_nearest_line_part_to_incident,
-                               find_nearest_incident_end, prepare_bearing_filter_values, filter_out_bearing)
-from converters import string_to_datetime, coordinates_string_to_tuple
 
 from json import load
 from os.path import join, dirname, abspath, exists, sep
@@ -108,7 +109,7 @@ def main():
                                       "delay", "delay_score",
                                       "bearing", "bearing_filter_out",
                                       "nearest_line_part_to_incident", "distance_incident_to_line",
-                                      # "route_line_distance_score",
+                                      "route_line_distance_score",
                                       "filter_out", "ranking_score"])
 
     # create tuple of lat and lon from coordinates string
@@ -177,6 +178,11 @@ def main():
                                                                    nearest_line_part_to_incident.x),
                                                                   nearest_incident_end)
             dataframe.at[number, "distance_incident_to_line"] = round(distance_incident_to_ccp_dest_line, 3)
+            ccp_dest_line_distance_score = calc_ccp_dest_line_distance_score(distance_incident_to_ccp_dest_line,
+                                                                             input_info["ccp_dest_buffer_[km]"])
+            dataframe.at[number, "route_line_distance_score"] = ccp_dest_line_distance_score
+        else:
+            ccp_dest_line_distance_score = -100
 
         filter_out = filter_out_function(distance_incident_to_ccp,
                                          input_info["inner_radius"],
@@ -216,7 +222,8 @@ def main():
                                   event_score,
                                   frc_score,
                                   delay_score,
-                                  radius_boost_score)
+                                  radius_boost_score,
+                                  ccp_dest_line_distance_score)
         dataframe.at[number, "ranking_score"] = ranking_score
 
         print("\rCalculated scores: " + str(number + 1) + " / " + str(traffic_messages_number), end='', flush=True)

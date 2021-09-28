@@ -1,17 +1,18 @@
 {
   "XML_file": "Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d",
-  "limit": 1200,
+  "limit": 900,
   "ccp": "52.52343, 13.41144",
-  "destination": "52.428755, 10.786117",
+  "destination": "50.112601, 8.682943",
   "bearing_filter_range": 45,
   "inner_radius": 20,
+  "ccp_dest_buffer_[km]": 100,
   "outer_radius": 120,
 
   "filtering_function": {
     "inn_r": "FRC7",
     "out_r": "FRC6,FRC7",
     "3rd_r_frcs": "FRC0,FRC1,FRC2",
-    "3rd_r_events": "CLOSURE,ROADWORKS",
+    "3rd_r_events": "CLOSURE,JAM_UNCONDITIONAL",
     "excluded_completely": "JAM_CONDITIONAL"
   },
   "distance_score": "calculated on ccp, incident position and outer radius",
@@ -70,10 +71,11 @@
   ],
 
   "weights": {
-    "distance_score": 0.2,
-    "event_score": 0.2,
-    "frc_score": 0.2,
-    "delay_score": 0.2,
-    "radius_boost_score": 0.2
+    "distance_score": 0.1667,
+    "event_score": 0.1667,
+    "frc_score": 0.1667,
+    "delay_score": 0.1667,
+    "radius_boost_score": 0.1667,
+    "ccp_dest_line_score": 0.1667
   }
 }

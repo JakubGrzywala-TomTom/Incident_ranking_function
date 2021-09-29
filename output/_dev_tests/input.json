@@ -1,6 +1,6 @@
 {
   "XML_file": "Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d",
-  "limit": 900,
+  "limit": 1200,
   "ccp": "52.52343, 13.41144",
   "destination": "50.112601, 8.682943",
   "bearing_filter_range": 45,

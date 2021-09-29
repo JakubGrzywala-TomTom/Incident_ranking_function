@@ -153,6 +153,10 @@ def main():
         bearing_filter_range = int(input_info["bearing_filter_range"])
         bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
 
+    if line_mode_on:
+        bearing_filter_range = 90
+        bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
+
     # -------------------------------------
     # PHASE 2: COLLECT INCIDENTS ATTRIBUTES
 
@@ -273,16 +277,25 @@ def main():
             # Score will also eliminate all messages outside of "score buffer". IF messages limit is too low, script
             # will start from eliminating messages most remote from ccp -> dest line, event that they are inside buffer.
             elif line_mode_on:
-                nearest_line_part_to_incident = find_nearest_line_part_to_incident(ccp_destination_line,
-                                                                                   nearest_incident_end)
-                distance_incident_to_ccp_dest_line = distance_between((nearest_line_part_to_incident.y,
-                                                                       nearest_line_part_to_incident.x),
-                                                                      nearest_incident_end)
-                dataframe.at[number, "distance_incident_to_line"] = round(distance_incident_to_ccp_dest_line, 3)
-                ccp_dest_line_distance_score = calc_ccp_dest_line_distance_score(distance_incident_to_ccp_dest_line,
-                                                                                 input_info["ccp_dest_buffer_[km]"])
-                dataframe.at[number, "route_line_distance_score"] = ccp_dest_line_distance_score
-                # TODO: bearing filter can be added to clean up messages behind direction of route
+                bearing = bearing_between(current_pos, nearest_incident_end)
+                dataframe.at[number, "bearing"] = bearing
+                bearing_filter = filter_out_bearing(ccp_destination_bearing,
+                                                    bearing,
+                                                    bearing_filter_range,
+                                                    bearing_filter_boundaries,
+                                                    distance_incident_to_ccp,
+                                                    input_info["inner_radius"])
+                dataframe.at[number, "bearing_filter_out"] = bearing_filter
+                if not bearing_filter:
+                    nearest_line_part_to_incident = find_nearest_line_part_to_incident(ccp_destination_line,
+                                                                                       nearest_incident_end)
+                    distance_incident_to_ccp_dest_line = distance_between((nearest_line_part_to_incident.y,
+                                                                           nearest_line_part_to_incident.x),
+                                                                          nearest_incident_end)
+                    dataframe.at[number, "distance_incident_to_line"] = round(distance_incident_to_ccp_dest_line, 3)
+                    ccp_dest_line_distance_score = calc_ccp_dest_line_distance_score(distance_incident_to_ccp_dest_line,
+                                                                                     input_info["ccp_dest_buffer_[km]"])
+                    dataframe.at[number, "route_line_distance_score"] = ccp_dest_line_distance_score
                 filter_out = filter_out_function(distance_incident_to_ccp,
                                                  input_info["inner_radius"],
                                                  input_info["outer_radius"],
@@ -291,7 +304,7 @@ def main():
                                                  input_info["filtering_function"],
                                                  file_creation_dt,
                                                  incident_starttime_dt,
-                                                 bearing_filter=False)
+                                                 bearing_filter)
                 dataframe.at[number, "filter_out"] = filter_out
                 ranking_score = calc_rank(input_info["weights"],
                                           filter_out,

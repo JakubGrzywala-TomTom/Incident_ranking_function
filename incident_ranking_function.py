@@ -24,6 +24,9 @@ import pandas as pd
 def main():
     start_time = perf_counter()
 
+    # -----------------------------------
+    # PHASE 1: COLLECTING PREDEFINED INFO
+
     # ask for folder with input .json and input TTI .xml  in terminal after -f flag
     # or through sysin if script run from PyCharm configuration
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
@@ -36,6 +39,33 @@ def main():
             exit()
     else:
         folder_flag_value = args[opts.index("-f")]
+
+    if "-m" in opts:
+        mode_flag_value = args[opts.index("-m")].lower().strip()
+        if mode_flag_value == "around":
+            around_mode_on = True
+            bearing_mode_on = False
+            line_mode_on = False
+        elif mode_flag_value == "bearing":
+            around_mode_on = False
+            bearing_mode_on = True
+            line_mode_on = False
+        elif mode_flag_value == "line":
+            around_mode_on = False
+            bearing_mode_on = False
+            line_mode_on = True
+        else:
+            print("Please specify (by writing after '-m' mode flag) one of three possible script modes:"
+                  "\n    'around': to simulate car sending request without destination"
+                  "\n    'bearing': to simulate car sending request with destination and usage of bearing filter"
+                  "\n    'line': to simulate car sending request with destination and usage of ccp -> destination "
+                  "line score")
+            exit()
+    # IF mode flag not used, then script goes into most simple "around" mode, simulating car request without destination
+    else:
+        around_mode_on = True
+        bearing_mode_on = False
+        line_mode_on = False
 
     # check if folders for output exist, if not create it
     output_directory = join(dirname(abspath(__file__)), "output")
@@ -63,7 +93,7 @@ def main():
               "\nEither by writing folder name by itself after '-f' or '-f output\\<folder-name>'")
         exit()
 
-    # load json file with current car position, radii and incident ranking method's category scores
+    # load json file with current car position, radii and incident ranking method's category scores, etc.
     try:
         config_json_file = join(output_work_directory, "input.json")
         with open(config_json_file) as input_json:
@@ -108,20 +138,25 @@ def main():
                                       "frc", "frc_score",
                                       "delay", "delay_score",
                                       "bearing", "bearing_filter_out",
-                                      "nearest_line_part_to_incident", "distance_incident_to_line",
-                                      "route_line_distance_score",
+                                      "distance_incident_to_line", "route_line_distance_score",
                                       "filter_out", "ranking_score"])
 
     # create tuple of lat and lon from coordinates string
     current_pos = coordinates_string_to_tuple(input_info["ccp"])
-    destination_pos = coordinates_string_to_tuple(input_info["destination"])
-    ccp_destination_line = create_ccp_destination_line(current_pos, destination_pos)
-    ccp_destination_bearing = bearing_between(current_pos, destination_pos)
-    bearing_filter_range = int(input_info["bearing_filter_range"])
-    bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
+
+    if bearing_mode_on or line_mode_on:
+        destination_pos = coordinates_string_to_tuple(input_info["destination"])
+        ccp_destination_line = create_ccp_destination_line(current_pos, destination_pos)
+        ccp_destination_bearing = bearing_between(current_pos, destination_pos)
+
+    if bearing_mode_on:
+        bearing_filter_range = int(input_info["bearing_filter_range"])
+        bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
+
+    # -------------------------------------
+    # PHASE 2: COLLECT INCIDENTS ATTRIBUTES
 
     for number, traffic_message in enumerate(traffic_messages):
-        # collect data from xml for certain message
         dataframe.at[number, "incident_key"] = get_incident_key(traffic_message, namespaces, relevant_ns_order[1])
         incident_expiry = get_incident_expiry(traffic_message, namespaces, relevant_ns_order[1])
         dataframe.at[number, "expiry(days)"] = incident_expiry
@@ -154,50 +189,10 @@ def main():
                                                 relevant_ns_order[0],
                                                 relevant_ns_order[5])
             dataframe.at[number, "delay"] = incident_delay
-        bearing = bearing_between(current_pos, nearest_incident_end)
-        dataframe.at[number, "bearing"] = bearing
 
-        # first messages filtering based on distance and FRC/event type, etc.
-        bearing_filter = filter_out_bearing(ccp_destination_bearing,
-                                            bearing,
-                                            bearing_filter_range,
-                                            bearing_filter_boundaries,
-                                            distance_incident_to_ccp,
-                                            input_info["inner_radius"])
-        dataframe.at[number, "bearing_filter_out"] = bearing_filter
+        # ---------------------------
+        # PHASE 3: SCORES CALCULATION
 
-        # TODO: problem with tuple -> Shapley geometry conversion
-        if not bearing_filter:
-            nearest_line_part_to_incident = find_nearest_line_part_to_incident(ccp_destination_line,
-                                                                               nearest_incident_end)
-            dataframe.at[number, "nearest_line_part_to_incident"] = (str(nearest_line_part_to_incident.y)
-                                                                     + ", "
-                                                                     + str(nearest_line_part_to_incident.x))
-
-            distance_incident_to_ccp_dest_line = distance_between((nearest_line_part_to_incident.y,
-                                                                   nearest_line_part_to_incident.x),
-                                                                  nearest_incident_end)
-            dataframe.at[number, "distance_incident_to_line"] = round(distance_incident_to_ccp_dest_line, 3)
-            ccp_dest_line_distance_score = calc_ccp_dest_line_distance_score(distance_incident_to_ccp_dest_line,
-                                                                             input_info["ccp_dest_buffer_[km]"])
-            dataframe.at[number, "route_line_distance_score"] = ccp_dest_line_distance_score
-        else:
-            ccp_dest_line_distance_score = -100
-
-        filter_out = filter_out_function(distance_incident_to_ccp,
-                                         input_info["inner_radius"],
-                                         input_info["outer_radius"],
-                                         incident_frc,
-                                         incident_event,
-                                         input_info["filtering_function"],
-                                         file_creation_dt,
-                                         incident_starttime_dt,
-                                         bearing_filter)
-        dataframe.at[number, "filter_out"] = filter_out
-
-        # calculate and collect scores
-        # TODO: scores functions should be surrounded with `if filter_out then not count them`
-        #  left for now to make sure that filtering works fine
         distance_score = calc_distance_score(distance_incident_to_ccp, input_info["outer_radius"])
         dataframe.at[number, "distance_score"] = distance_score
         radius_boost_score = calc_radius_boost_score(distance_incident_to_ccp,
@@ -215,18 +210,105 @@ def main():
             delay_score = calc_delay_score(incident_delay, input_info["delay_score"])
             dataframe.at[number, "delay_score"] = delay_score
 
-        # calculate and collect final score
-        ranking_score = calc_rank(input_info["weights"],
-                                  filter_out,
-                                  distance_score,
-                                  event_score,
-                                  frc_score,
-                                  delay_score,
-                                  radius_boost_score,
-                                  ccp_dest_line_distance_score)
-        dataframe.at[number, "ranking_score"] = ranking_score
+        # Scenario 1: when car requests traffic without destination location, e.g. when starting engine and info system.
+        # This scenario does not utilize any bearing filters or scores based on line between ccp and destination.
+        # Just incidents around ccp scored by importance and filtered out properly.
+        if around_mode_on:
+            filter_out = filter_out_function(distance_incident_to_ccp,
+                                             input_info["inner_radius"],
+                                             input_info["outer_radius"],
+                                             incident_frc,
+                                             incident_event,
+                                             input_info["filtering_function"],
+                                             file_creation_dt,
+                                             incident_starttime_dt,
+                                             bearing_filter=False)
+            dataframe.at[number, "filter_out"] = filter_out
+            ranking_score = calc_rank(input_info["weights"],
+                                      filter_out,
+                                      distance_score,
+                                      event_score,
+                                      frc_score,
+                                      delay_score,
+                                      radius_boost_score,
+                                      ccp_dest_line_distance_score=0)
+            dataframe.at[number, "ranking_score"] = ranking_score
+
+        # Scenarios when car requests for traffic with destination and route: two ways of calculating scores here
+        else:
+            # Scenario 2: using bearing filter, script will discard all messages outside of inner radius IF they are
+            # not around ccp -> destination bearing (number of degrees left and right around this bearing)
+            # Script creates some kind of "wedge" around ccp -> dest bearing.
+            if bearing_mode_on:
+                bearing = bearing_between(current_pos, nearest_incident_end)
+                dataframe.at[number, "bearing"] = bearing
+                bearing_filter = filter_out_bearing(ccp_destination_bearing,
+                                                    bearing,
+                                                    bearing_filter_range,
+                                                    bearing_filter_boundaries,
+                                                    distance_incident_to_ccp,
+                                                    input_info["inner_radius"])
+                dataframe.at[number, "bearing_filter_out"] = bearing_filter
+                filter_out = filter_out_function(distance_incident_to_ccp,
+                                                 input_info["inner_radius"],
+                                                 input_info["outer_radius"],
+                                                 incident_frc,
+                                                 incident_event,
+                                                 input_info["filtering_function"],
+                                                 file_creation_dt,
+                                                 incident_starttime_dt,
+                                                 bearing_filter)
+                dataframe.at[number, "filter_out"] = filter_out
+                ranking_score = calc_rank(input_info["weights"],
+                                          filter_out,
+                                          distance_score,
+                                          event_score,
+                                          frc_score,
+                                          delay_score,
+                                          radius_boost_score,
+                                          ccp_dest_line_distance_score=0)
+                dataframe.at[number, "ranking_score"] = ranking_score
+
+            # Scenario 3: using score that orders incidents based on distance between them and ccp -> destination line.
+            # Score will also eliminate all messages outside of "score buffer". IF messages limit is too low, script
+            # will start from eliminating messages most remote from ccp -> dest line, event that they are inside buffer.
+            elif line_mode_on:
+                nearest_line_part_to_incident = find_nearest_line_part_to_incident(ccp_destination_line,
+                                                                                   nearest_incident_end)
+                distance_incident_to_ccp_dest_line = distance_between((nearest_line_part_to_incident.y,
+                                                                       nearest_line_part_to_incident.x),
+                                                                      nearest_incident_end)
+                dataframe.at[number, "distance_incident_to_line"] = round(distance_incident_to_ccp_dest_line, 3)
+                ccp_dest_line_distance_score = calc_ccp_dest_line_distance_score(distance_incident_to_ccp_dest_line,
+                                                                                 input_info["ccp_dest_buffer_[km]"])
+                dataframe.at[number, "route_line_distance_score"] = ccp_dest_line_distance_score
+                # TODO: bearing filter can be added to clean up messages behind direction of route
+                filter_out = filter_out_function(distance_incident_to_ccp,
+                                                 input_info["inner_radius"],
+                                                 input_info["outer_radius"],
+                                                 incident_frc,
+                                                 incident_event,
+                                                 input_info["filtering_function"],
+                                                 file_creation_dt,
+                                                 incident_starttime_dt,
+                                                 bearing_filter=False)
+                dataframe.at[number, "filter_out"] = filter_out
+                ranking_score = calc_rank(input_info["weights"],
+                                          filter_out,
+                                          distance_score,
+                                          event_score,
+                                          frc_score,
+                                          delay_score,
+                                          radius_boost_score,
+                                          ccp_dest_line_distance_score)
+                dataframe.at[number, "ranking_score"] = ranking_score
+            else:
+                exit()
 
         print("\rCalculated scores: " + str(number + 1) + " / " + str(traffic_messages_number), end='', flush=True)
+
+    # -------------------------------------------
+    # PHASE 4: SAVE SCORESHEET AND FILTERED XML
 
     # save unsorted incidents with scores in the csv
     if xml_file.endswith(".xml"):
@@ -257,14 +339,22 @@ def main():
                xml_declaration=True,
                default_namespace=None)
 
-    end_time = perf_counter()
-    print(f"\nScript finished in: {end_time - start_time} seconds"
-          + f'\n\nCCP: {input_info["ccp"]}'
-          + f'\nDestination: {input_info["destination"]}'
-          + f'\nCCP -> destination bearing: {ccp_destination_bearing}'
-          + f'\nCCP -> destination distance [km]: {round(distance_between(current_pos, destination_pos), 3)}')
+    # ------------------------
+    # PHASE X: PRINT OUT STATS
 
-    # Couple of stats:
+    end_time = perf_counter()
+    print(
+        f"\nScript finished in: {end_time - start_time} seconds"
+        + f'\n\nCCP: {input_info["ccp"]}'
+    )
+
+    if bearing_mode_on or line_mode_on:
+        print(
+            f'Destination: {input_info["destination"]}'
+            + f'\nCCP -> destination bearing: {ccp_destination_bearing}'
+            + f'\nCCP -> destination distance [km]: {round(distance_between(current_pos, destination_pos), 3)}'
+        )
+
     print(
         "\nNumber of incidents in output .xml: " + str(dataframe_sorted["incident_key"].count())
         + "\nLimit was: " + str(input_info["limit"])

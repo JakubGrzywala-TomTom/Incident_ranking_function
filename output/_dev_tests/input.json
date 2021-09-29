@@ -9,10 +9,10 @@
   "outer_radius": 120,
 
   "filtering_function": {
-    "inn_r": "FRC7",
-    "out_r": "FRC6,FRC7",
-    "3rd_r_frcs": "FRC0,FRC1,FRC2",
-    "3rd_r_events": "CLOSURE,JAM_UNCONDITIONAL",
+    "inn_r_exclude": "FRC7",
+    "out_r_exclude": "FRC6,FRC7",
+    "3rd_r_frcs_include": "FRC0,FRC1,FRC2",
+    "3rd_r_events_include": "CLOSURE,JAM_UNCONDITIONAL",
     "excluded_completely": "JAM_CONDITIONAL"
   },
   "distance_score": "calculated on ccp, incident position and outer radius",

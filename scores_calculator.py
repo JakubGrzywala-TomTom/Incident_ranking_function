@@ -16,10 +16,10 @@ def filter_out_function(distance_between_points: float,
                         bearing_filter: bool) -> bool:
 
     # instantiating those in "incident_ranking_function" would be much more efficient
-    inn_r_frc_list = list_from_string(str(categories["inn_r"]))
-    out_r_frc_list = list_from_string(str(categories["out_r"]))
-    third_r_frc_list = list_from_string(str(categories["3rd_r_frcs"]))
-    third_r_event_list = list_from_string(str(categories["3rd_r_events"]))
+    inn_r_frc_list = list_from_string(str(categories["inn_r_exclude"]))
+    out_r_frc_list = list_from_string(str(categories["out_r_exclude"]))
+    third_r_frc_list = list_from_string(str(categories["3rd_r_frcs_include"]))
+    third_r_event_list = list_from_string(str(categories["3rd_r_events_include"]))
     excluded_completely = list_from_string(str(categories["excluded_completely"]))
 
     # One colossal, enormous, gigantic if XD

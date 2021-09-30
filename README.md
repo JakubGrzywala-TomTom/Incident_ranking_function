@@ -69,13 +69,12 @@ In PyCharm project:
     * file name (with or without ".xml") of TTI file that needs to be processed
     * limit of messages in processed file
     * score dictionaries that hold condition and value that message should receive for it
-
->Both files need to be placed in one of "OUTPUT" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script:
-> 
->`py incident-ranking-function -f output\<your-folder-name>`
+    * etc.
+Newest version of the file is available in github repo: output -> _dev_tests folder.  
+Both files need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script:
 
 ### 1.3. Starting script (after setting up what it needs):
-* TTI output .xml and input.json configuration file in one of "OUTPUT" subfolder
+* TTI output .xml and input.json configuration file in one of "output" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
   * `.\Scripts\activate` to activate Python virtual environment with libraries and modifications described in 1.2. 
   * `py incident_ranking_function.py -f output\<your-folder-name>`
@@ -83,6 +82,17 @@ In PyCharm project:
 (of course PyCharm configurations can be used, using that you will be asked for `output\<your-folder-name>`, filename completion doesn't work there, so it's less convenient)
 * !!! configuration .json file has to be in root folder  
 
+#### Flags:
+* "-f": to indicate a **folder** with TTI .xml file and configuration .json file.
+* "-m": to choose **mode** in which script works:
+  * "around": to simulate situation when car sends request without destination and only incidents around ccp should be sent and displayed.
+  * "bearing": when car sends request with destination and to filter out distant messages we use "bearing filter", so a wedge around ccp -> destination bearing.
+  * "line": similar situation, but for filtering score is used: between ccp and destination line is created and every incident receives score based on how distant it is from this line.  
+    (When mode is not specified script goes into "around" mode).
+
+> EXAMPLE OF FULL CMD COMMAND:
+> 
+> `py incident_ranking_function.py -f output\<your-folder-name> -m line`
 ___
 
 ## 2. TTI .xml tag's values used for calculating scores
@@ -156,6 +166,8 @@ Decides either message should be taken into account.
 * ADDITIONALLY:
 * EXCLUDES messages with event type listed in "excluded_completely" parameter
 * EXCLUDES messages that have a startTimeUTC attribute and it is greater than file creationTimeUTC (from metadata), which means they are not active, future events
+* (OPTIONAL) EXCLUDES messages which are out of inner radius AND "behind" route direction (bearing between start
+and end coordinates)
 
 Outcome: boolean, decides whether to:
 * filter out a message (True)
@@ -215,5 +227,11 @@ Outcome: float, either with:
 * 0 if event type is not excluded and does not have a delay either
 * score value connected to certain category in input .json file
 
-### 3.7 Weights
+### 3.7. CCP -> destination line distance score
+Output ranges from 1 to 0. Incidents might get - value, then they are automatically filtered out of scope (-100).
+Bigger the distance between incident end and ccp-dest line, smaller the score
+
+1 - (distance / buffer around line in km)
+
+### 3.8 Weights
 Weights for testing different balance between 3.2 - 3.6 scores (Filtering function works first, independently)

@@ -10,3 +10,5 @@ output/*
 !output/_dev_tests
 output/_dev_tests/line*
 output/_dev_tests/*attributes*
+
+static/*mode-images*

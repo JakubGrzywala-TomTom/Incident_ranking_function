@@ -85,10 +85,15 @@ Both files need to be placed in one of "output" subfolders. There can be many fo
 #### Flags:
 * "-f": to indicate a **folder** with TTI .xml file and configuration .json file.
 * "-m": to choose **mode** in which script works:
-  * "around": to simulate situation when car sends request without destination and only incidents around ccp should be sent and displayed.
-  * "bearing": when car sends request with destination and to filter out distant messages we use "bearing filter", so a wedge around ccp -> destination bearing.
+  * "around": to simulate situation when car sends request without destination and only incidents around ccp should be sent and displayed.  
+  ![around mode](./static/around-mode-s.png)
+  * "bearing": when car sends request with destination and to filter out distant messages we use "bearing filter", so a wedge around ccp -> destination bearing.  
+  ![bearing mode](./static/bearing-mode-s.png)
   * "line": similar situation, but for filtering score is used: between ccp and destination line is created and every incident receives score based on how distant it is from this line.  
-    (When mode is not specified script goes into "around" mode).
+  ![line mode](./static/line-mode-s.png)  
+  
+When mode is not specified script goes into "around" mode.
+Bigger versions of images in "static" folder.
 
 > EXAMPLE OF FULL CMD COMMAND:
 > 

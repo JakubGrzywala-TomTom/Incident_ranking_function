@@ -148,10 +148,7 @@ def calc_ccp_dest_line_distance_score(distance_between_points: float,
                                       buffer: float) -> float:
     if distance_between_points != float(-100):
         distance_score_value = 1 - (distance_between_points / buffer)
-        if distance_score_value < 0:
-            return float(-100)
-        else:
-            return round(distance_score_value, 5)
+        return round(distance_score_value, 5)
     else:
         return float(-100)
 

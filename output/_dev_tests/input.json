@@ -3,11 +3,11 @@
   "limit": 1200,
   "ccp": "52.52343, 13.41144",
   "destination": "50.112601, 8.682943",
-  "bearing_filter_range": 45,
   "inner_radius": 20,
-  "ccp_dest_buffer_[km]": 100,
   "outer_radius": 120,
+  "ccp_dest_buffer_[km]": 100,
 
+  "bearing_filter_range": 180,
   "filtering_function": {
     "inn_r_exclude": "FRC7",
     "out_r_exclude": "FRC6,FRC7",

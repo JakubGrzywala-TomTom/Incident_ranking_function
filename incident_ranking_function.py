@@ -148,13 +148,7 @@ def main():
         destination_pos = coordinates_string_to_tuple(input_info["destination"])
         ccp_destination_line = create_ccp_destination_line(current_pos, destination_pos)
         ccp_destination_bearing = bearing_between(current_pos, destination_pos)
-
-    if bearing_mode_on:
         bearing_filter_range = int(input_info["bearing_filter_range"])
-        bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
-
-    if line_mode_on:
-        bearing_filter_range = 90
         bearing_filter_boundaries = prepare_bearing_filter_values(ccp_destination_bearing, bearing_filter_range)
 
     # -------------------------------------

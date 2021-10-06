@@ -12,16 +12,12 @@ def create_histogram(series: pd.Series,
     series_min_boundary = round(series.min(), 1)
     if series_min_boundary >= 0:
         bin_num = int((series_max_boundary + series_min_boundary) * 100)
-        bin_seq = []
-        for x in range(bin_num-1):
-            bin_seq.append(round(series_min_boundary, 2))
-            series_min_boundary += 0.01
     else:
         bin_num = int((series_max_boundary + abs(series_min_boundary)) * 100)
-        bin_seq = []
-        for x in range(bin_num-1):
-            bin_seq.append(round(series_min_boundary, 2))
-            series_min_boundary += 0.01
+    bin_seq = []
+    for x in range(bin_num-1):
+        bin_seq.append(round(series_min_boundary, 2))
+        series_min_boundary += 0.01
 
     fig = Figure(figsize=(18, 9), facecolor='#ffffff')
     ax = fig.add_subplot()

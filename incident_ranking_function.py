@@ -1,10 +1,11 @@
 from converters import string_to_datetime, coordinates_string_to_tuple
-from scores_calculator import (calc_distance_score, calc_event_score, calc_frc_score,
+from plot_maker import create_histogram
+from filtering_functions import prepare_bearing_filter_values, filter_out_bearing, filter_out_function
+from scoring_functions import (calc_distance_score, calc_event_score, calc_frc_score,
                                calc_delay_score, calc_radius_boost_score, calc_ccp_dest_line_distance_score,
-                               filter_out_bearing, prepare_bearing_filter_values,
-                               filter_out_function, calc_rank)
-from spatial_operations import (distance_between, bearing_between, create_ccp_destination_line,
-                                find_nearest_line_part_to_incident, find_nearest_incident_end)
+                               calc_rank)
+from spatial_functions import (distance_between, bearing_between, create_ccp_destination_line,
+                               find_nearest_line_part_to_incident, find_nearest_incident_end)
 from xml_parser import (register_all_namespaces, get_incident_key, get_incident_pos,
                         get_incident_event, get_incident_frc, get_incident_delay,
                         get_incident_expiry, get_incident_starttime, get_file_creationtime,
@@ -143,6 +144,7 @@ def main():
 
     # create tuple of lat and lon from coordinates string
     current_pos = coordinates_string_to_tuple(input_info["ccp"])
+    ranking_score_capping = float(input_info["ranking_score_capping"])
 
     if bearing_mode_on or line_mode_on:
         destination_pos = coordinates_string_to_tuple(input_info["destination"])
@@ -325,8 +327,17 @@ def main():
     # omit all excluded messages
     dataframe = dataframe[dataframe["ranking_score"] != -100]
 
-    # sort, limit incidents and save in another csv
+    # sort and save histogram
     dataframe_sorted = dataframe.sort_values(by="ranking_score", ascending=False)
+    create_histogram(dataframe_sorted["ranking_score"],
+                     output_work_directory,
+                     ranking_score_capping,
+                     int(input_info["limit"]))
+
+    # delete all rows below capping value
+    dataframe_sorted = dataframe_sorted[dataframe_sorted["ranking_score"].astype(float) > ranking_score_capping]
+
+    # limit incidents and save in another csv
     dataframe_sorted = dataframe_sorted.head(input_info["limit"])
     dataframe_sorted.to_csv(join(output_work_directory, xml_file + "_limited_scores.csv"), encoding='utf-8')
 

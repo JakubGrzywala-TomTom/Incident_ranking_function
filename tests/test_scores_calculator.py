@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from scores_calculator import *
+from scoring_functions import *
 
 
 class Test(TestCase):

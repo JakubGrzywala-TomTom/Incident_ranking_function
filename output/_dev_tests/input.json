@@ -1,12 +1,13 @@
 {
   "XML_file": "Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d",
-  "limit": 1200,
+  "limit": 1300,
   "ccp": "52.52343, 13.41144",
   "destination": "50.112601, 8.682943",
   "inner_radius": 20,
   "outer_radius": 120,
   "ccp_dest_buffer_[km]": 100,
 
+  "ranking_score_capping": -0.3,
   "bearing_filter_range": 180,
   "filtering_function": {
     "inn_r_exclude": "FRC7",

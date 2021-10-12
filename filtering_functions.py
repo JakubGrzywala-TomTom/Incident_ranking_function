@@ -1,5 +1,3 @@
-from converters import list_from_string
-
 from datetime import datetime
 
 
@@ -8,6 +6,7 @@ from datetime import datetime
 def filter_out_function(distance_between_points: float,
                         inner_radius: int,
                         outer_radius: int,
+                        third_radius: int,
                         frc: str,
                         event: str,
                         categories: dict,
@@ -15,21 +14,19 @@ def filter_out_function(distance_between_points: float,
                         incident_starttime_dt: datetime,
                         bearing_filter: bool) -> bool:
 
-    # instantiating those in "incident_ranking_function" would be much more efficient
-    inn_r_frc_list = list_from_string(str(categories["inn_r_exclude"]))
-    out_r_frc_list = list_from_string(str(categories["out_r_exclude"]))
-    third_r_frc_list = list_from_string(str(categories["3rd_r_frcs_include"]))
-    third_r_event_list = list_from_string(str(categories["3rd_r_events_include"]))
-    excluded_completely = list_from_string(str(categories["excluded_completely"]))
+    # First stage of filtering, cleaning messages outside of 3rd radius
+    # -1 third radius means it will be "endless"
+    if third_radius != -1 and third_radius < distance_between_points:
+        return True
 
     # One colossal, enormous, gigantic if XD
     if (
-        (event in excluded_completely)
+        (event in categories["excluded_completely"])
         or bearing_filter
         or (file_creation_dt < incident_starttime_dt)
-        or ((distance_between_points <= inner_radius) and (frc in inn_r_frc_list))
-        or ((distance_between_points > inner_radius) and (distance_between_points <= outer_radius) and (frc in out_r_frc_list))
-        or ((distance_between_points > outer_radius) and not ((frc in third_r_frc_list) and (event in third_r_event_list)))
+        or ((distance_between_points <= inner_radius) and (frc in categories["inn_r_frcs_exclude"]))
+        or ((distance_between_points > inner_radius) and (distance_between_points <= outer_radius) and (frc in categories["out_r_frcs_exclude"]))
+        or ((distance_between_points > outer_radius) and not ((frc in categories["3rd_r_frcs_include"]) and (event in categories["3rd_r_events_include"])))
     ):
         return True
     else:
@@ -61,12 +58,15 @@ def filter_out_bearing(ccp_dest_bearing: float,
 
 def prepare_bearing_filter_values(ccp_dest_bearing: float,
                                   plus_minus_range: int) -> tuple:
-    ccp_dest_bearing_left = ccp_dest_bearing - plus_minus_range
-    if ccp_dest_bearing_left < 0:
-        ccp_dest_bearing_left = 360 - abs(ccp_dest_bearing_left)
+    if plus_minus_range == 0:
+        return 0, 0
+    else:
+        ccp_dest_bearing_left = ccp_dest_bearing - plus_minus_range
+        if ccp_dest_bearing_left < 0:
+            ccp_dest_bearing_left = 360 - abs(ccp_dest_bearing_left)
 
-    ccp_dest_bearing_right = ccp_dest_bearing + plus_minus_range
-    if ccp_dest_bearing_right > 360:
-        ccp_dest_bearing_right = ccp_dest_bearing_right - 360
+        ccp_dest_bearing_right = ccp_dest_bearing + plus_minus_range
+        if ccp_dest_bearing_right > 360:
+            ccp_dest_bearing_right = ccp_dest_bearing_right - 360
 
-    return ccp_dest_bearing_left, ccp_dest_bearing_right
+        return ccp_dest_bearing_left, ccp_dest_bearing_right

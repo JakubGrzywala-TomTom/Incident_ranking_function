@@ -1,21 +1,23 @@
 {
   "XML_file": "Birmingham_DEU_TTI_External_2021-03-01_43e995cc-6832-45ae-873f-b70190d51e7d",
-  "limit": 1300,
   "ccp": "52.52343, 13.41144",
   "destination": "50.112601, 8.682943",
   "inner_radius": 20,
   "outer_radius": 120,
+  "3rd_radius": -1,
   "ccp_dest_buffer_[km]": 100,
 
+  "limit": 1300,
   "ranking_score_capping": -0.3,
   "bearing_filter_range": 180,
   "filtering_function": {
-    "inn_r_exclude": "FRC7",
-    "out_r_exclude": "FRC6,FRC7",
+    "inn_r_frcs_exclude": "FRC7",
+    "out_r_frcs_exclude": "FRC6,FRC7",
     "3rd_r_frcs_include": "FRC0,FRC1,FRC2",
     "3rd_r_events_include": "CLOSURE,JAM_UNCONDITIONAL",
     "excluded_completely": "JAM_CONDITIONAL"
   },
+
   "distance_score": "calculated on ccp, incident position and outer radius",
   "radius_boost_score": {
     "4": 1,
@@ -67,8 +69,7 @@
     "1620": 1
   },
   "excluded_from_delay_score": [
-    "CLOSURE",
-    "HAZARD"
+    "CLOSURE"
   ],
 
   "weights": {

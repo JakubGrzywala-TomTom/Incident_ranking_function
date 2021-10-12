@@ -1,4 +1,4 @@
-from converters import string_to_datetime, coordinates_string_to_tuple
+from converters import string_to_datetime, coordinates_string_to_tuple, list_from_string
 from plot_maker import create_histogram
 from filtering_functions import prepare_bearing_filter_values, filter_out_bearing, filter_out_function
 from scoring_functions import (calc_distance_score, calc_event_score, calc_frc_score,
@@ -142,9 +142,13 @@ def main():
                                       "distance_incident_to_line", "route_line_distance_score",
                                       "filter_out", "ranking_score"])
 
-    # create tuple of lat and lon from coordinates string
+    # create tuple of lat, lon from coordinates string
+    # plus other needed variables
     current_pos = coordinates_string_to_tuple(input_info["ccp"])
     ranking_score_capping = float(input_info["ranking_score_capping"])
+    filtering_rules = {}
+    for k, v in input_info["filtering_function"].items():
+        filtering_rules[k] = list_from_string(str(v))
 
     if bearing_mode_on or line_mode_on:
         destination_pos = coordinates_string_to_tuple(input_info["destination"])
@@ -217,9 +221,10 @@ def main():
             filter_out = filter_out_function(distance_incident_to_ccp,
                                              input_info["inner_radius"],
                                              input_info["outer_radius"],
+                                             input_info["3rd_radius"],
                                              incident_frc,
                                              incident_event,
-                                             input_info["filtering_function"],
+                                             filtering_rules,
                                              file_creation_dt,
                                              incident_starttime_dt,
                                              bearing_filter=False)
@@ -252,9 +257,10 @@ def main():
                 filter_out = filter_out_function(distance_incident_to_ccp,
                                                  input_info["inner_radius"],
                                                  input_info["outer_radius"],
+                                                 input_info["3rd_radius"],
                                                  incident_frc,
                                                  incident_event,
-                                                 input_info["filtering_function"],
+                                                 filtering_rules,
                                                  file_creation_dt,
                                                  incident_starttime_dt,
                                                  bearing_filter)
@@ -292,12 +298,15 @@ def main():
                     ccp_dest_line_distance_score = calc_ccp_dest_line_distance_score(distance_incident_to_ccp_dest_line,
                                                                                      input_info["ccp_dest_buffer_[km]"])
                     dataframe.at[number, "route_line_distance_score"] = ccp_dest_line_distance_score
+                else:
+                    ccp_dest_line_distance_score = -100
                 filter_out = filter_out_function(distance_incident_to_ccp,
                                                  input_info["inner_radius"],
                                                  input_info["outer_radius"],
+                                                 input_info["3rd_radius"],
                                                  incident_frc,
                                                  incident_event,
-                                                 input_info["filtering_function"],
+                                                 filtering_rules,
                                                  file_creation_dt,
                                                  incident_starttime_dt,
                                                  bearing_filter)
@@ -378,6 +387,7 @@ def main():
         + "\nLimit was: " + str(input_info["limit"])
         + "\nInner radius: " + str(input_info["inner_radius"])
         + "\nOuter radius: " + str(input_info["outer_radius"])
+        + "\n3rd radius: " + str(input_info["3rd_radius"])
         + "\n\nOUTPUT XML STATISTICS:"
         + "\n\nDistance [km]: \n"
         + str(dataframe_sorted.agg({"distance": ["min", "max", "mean", "median"]}))

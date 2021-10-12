@@ -172,7 +172,8 @@ Decides either message should be taken into account.
 * EXCLUDES messages with event type listed in "excluded_completely" parameter
 * EXCLUDES messages that have a startTimeUTC attribute and it is greater than file creationTimeUTC (from metadata), which means they are not active, future events
 * (OPTIONAL) EXCLUDES messages which are out of inner radius AND "behind" route direction (bearing between start
-and end coordinates)
+and end coordinates)  
+* (OPTIONAL) EXCLUDES messages outside 3rd radius (but it can be set as "endless" with -1 value in "3rd_radius" var)
 
 Outcome: boolean, decides whether to:
 * filter out a message (True)
@@ -233,7 +234,8 @@ Outcome: float, either with:
 * score value connected to certain category in input .json file
 
 ### 3.7. CCP -> destination line distance score
-Output ranges from 1 to 0. Incidents might get - value, then they are automatically filtered out of scope (-100).
+Output ranges from 1 to negative values, depends on distance.
+Does not work like filter.
 Bigger the distance between incident end and ccp-dest line, smaller the score
 
 1 - (distance / buffer around line in km)

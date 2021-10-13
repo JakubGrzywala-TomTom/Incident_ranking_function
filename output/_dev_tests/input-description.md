@@ -21,7 +21,7 @@ farther, the move negative the score), according to formula:
 `1 - (distance / buffer)`  
 Can be skipped if script run in "around" mode.  
 <br><br>
-#####"limit"
+##### "limit"
 Integer, to what number final set of messages should be limited.
 ##### "ranking_score_capping"
 Float, every message that has final (so-called "ranking") score below the capping value, will be removed from final set 

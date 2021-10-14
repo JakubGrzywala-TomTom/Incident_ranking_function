@@ -42,10 +42,12 @@
   },
   "jam_priority": {
     "101": 1,
-    "108": 0.8,
-    "115": 0.6,
-    "123": 0.4
+    "108": 0.9,
+    "115": 0.7,
+    "122": 0.6,
+    "124": 0.1
   },
+  "jam_priority_types": "101 stationary, 108 queuing, 115 slow, 122 heavy, 124 flowing freely",
   "frc_score": {
     "FRC0":	1,
     "FRC1":	0.9,

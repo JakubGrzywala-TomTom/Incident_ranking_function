@@ -7,7 +7,7 @@ from scoring_functions import (calc_distance_score, calc_event_score, calc_frc_s
 from spatial_functions import (distance_between, bearing_between, create_ccp_destination_line,
                                find_nearest_line_part_to_incident, find_nearest_incident_end)
 from xml_parser import (register_all_namespaces, get_incident_key, get_incident_pos,
-                        get_incident_event, get_incident_frc, get_incident_delay,
+                        get_incident_event, get_jam_priority, get_incident_frc, get_incident_delay,
                         get_incident_expiry, get_incident_starttime, get_file_creationtime,
                         order_relevant_namespaces)
 
@@ -135,7 +135,7 @@ def main():
     dataframe = pd.DataFrame(columns=["incident_key", "incident_nearest_end_position",
                                       "expiry(days)", "start_time_utc",
                                       "distance", "distance_score", "radius_boost_score",
-                                      "event", "event_score",
+                                      "event", "jam_priority", "event_score",
                                       "frc", "frc_score",
                                       "delay", "delay_score",
                                       "bearing", "bearing_filter_out",
@@ -182,6 +182,11 @@ def main():
         dataframe.at[number, "distance"] = distance_incident_to_ccp
         incident_event = get_incident_event(traffic_message, namespaces, relevant_ns_order[1])
         dataframe.at[number, "event"] = incident_event
+        if incident_event.find("JAM") != -1:
+            jam_priority = get_jam_priority(traffic_message, namespaces, relevant_ns_order[0], relevant_ns_order[4])
+            dataframe.at[number, "jam_priority"] = jam_priority
+        else:
+            jam_priority = "Error"
         incident_frc = get_incident_frc(traffic_message, namespaces, relevant_ns_order[0])
         dataframe.at[number, "frc"] = incident_frc
         if incident_event in input_info["excluded_from_delay_score"]:
@@ -203,7 +208,10 @@ def main():
                                                      input_info["inner_radius"],
                                                      input_info["radius_boost_score"])
         dataframe.at[number, "radius_boost_score"] = radius_boost_score
-        event_score = calc_event_score(incident_event, input_info["event_score"])
+        event_score = calc_event_score(incident_event,
+                                       input_info["event_score"],
+                                       jam_priority,
+                                       input_info["jam_priority"])
         dataframe.at[number, "event_score"] = event_score
         frc_score = calc_frc_score(incident_frc, input_info["frc_score"])
         dataframe.at[number, "frc_score"] = frc_score

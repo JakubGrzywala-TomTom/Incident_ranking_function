@@ -10,6 +10,7 @@ def create_histogram(series: pd.Series,
                      limit: int) -> None:
     series_max_boundary = 1
     series_min_boundary = round(series.min(), 1)
+    ranking_score_capping_bool = True if ranking_score_capping > series_min_boundary else False
     num_of_messages = series.count()
     if series_min_boundary >= 0:
         bin_num = int((series_max_boundary + series_min_boundary) * 100)
@@ -25,8 +26,9 @@ def create_histogram(series: pd.Series,
     ax.set_facecolor('#e5e5e5')
     ax.hist(series, bins=bin_seq, color="#61ade0", label="num of message scores in 0.01 bins")
     ax.grid(color='#000000', linestyle="--")
-    ax.axvline(ranking_score_capping, color="#df1b12", linestyle="--", linewidth=3,
-               label=f"capping value ({ranking_score_capping})")
+    if ranking_score_capping_bool:
+        ax.axvline(ranking_score_capping, color="#df1b12", linestyle="--", linewidth=3,
+                   label=f"capping value ({ranking_score_capping})")
     if limit <= num_of_messages:
         limit_score_value = series.iloc[limit]
         ax.axvline(limit_score_value, color="#fdc530", linestyle="--", linewidth=3,

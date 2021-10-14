@@ -9,15 +9,30 @@ def calc_distance_score(distance_between_points: float,
 
 
 def calc_event_score(incident_type: str,
-                     categories: dict) -> float:
+                     categories: dict,
+                     jam_priority: str,
+                     jam_categories: dict) -> float:
     if incident_type != "Error":
-        # watch out for event_score == 0, that means
+        # watch out for event_score == -10, that means
         # we do not have certain event type covered in input.json
-        event_score = 0
+        event_score = -10
         for event_key, event_value in categories.items():
-            if incident_type == event_key:
+            if incident_type == event_key and incident_type.find("JAM") == -1:
                 event_score = event_value
                 break
+            elif incident_type == event_key:
+                if jam_priority == "Error":
+                    event_score = event_value
+                else:
+                    # watch out for event_score == -11, that means
+                    # we do not have certain jam priority type covered in input.json
+                    event_score = -11
+                    for priority_key, priority_value in jam_categories.items():
+                        if jam_priority == priority_key:
+                            event_score = round(event_value * priority_value, 2)
+                            break
+                        else:
+                            continue
             else:
                 continue
         return event_score

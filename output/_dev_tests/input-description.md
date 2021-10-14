@@ -38,10 +38,11 @@ are unfiltered outside inner radius.
 180 will turn off the filter.  
 Works in "bearing" and "line" modes.
 ##### "filtering_function"
-Object of String keys and values. Keys are "inn_r_exclude", "out_r_exclude", "3rd_r_frcs_include", 
+Object of String keys and values. Keys are "inn_r_frcs_exclude", "out_r_frcs_exclude", "3rd_r_frcs_include", 
 "3rd_r_events_include", "excluded_completely".  
-Values are Strings, but can be list like "FRC0,FRC1,FRC2", they will be parsed and treated as list.  
-They are responsible for: "inn_r_exclude" on which FRCs to exclude messages in inner radius, and so on. 
+Values are Strings, but can be list like "FRC0,FRC1,FRC2", they will be parsed and treated as list.
+If filter is not needed, there needs to be empty string ("") left next to a key.
+They are responsible for: "inn_r_frcs_exclude" on which FRCs to exclude messages in inner radius, and so on. 
 "excluded_completely" will remove every message of certain type.
 <br><br>
 ##### "distance_score"
@@ -55,8 +56,12 @@ inner radius).
 Object of String keys and Float values, keys are different message types (e.g. "JAM_UNCONDITIONAL", "CLOSURE"), in 
 values there are scores associated with it.
 ##### "jam_priority"
-**DOES NOT WORK FOR NOW**  
-Object of String keys and Float values. Different jam priorities (e.g. "101", "108") and values associated with them.
+Object of String keys and Float values. Different jam priorities (e.g. "101", "108"). Applies only to Jams.
+Values associated with them will affect event score value connected with certain Jam type. E.g. If JAM_UNCONDITIONAL in 
+"event_score" object in input.json has 0.9, and some Jam of this type had "jam_priority" "115" equal 0.6 in input.json, 
+then this message's event score will be 0.54.  
+Formula is `final_event_score = event score * jam_priority`.  
+All jam priority types with value 1 will "turn off" influence of this attribute on event_score.
 ##### "frc_score"
 Object of String keys and Float values. Different FRCs (e.g. "FRC1", "FRC2") and values associated with them.
 ##### "delay_score"

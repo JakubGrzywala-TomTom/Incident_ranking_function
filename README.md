@@ -4,7 +4,7 @@ This script takes a given TTI_External output file from given country (from this
 based on made up car position and series of conditions, to in the end produce shorter .xml, limited to given number of most important
 messages from car position perspective.
 Both original files and ranked, limited files can be visualized in Cancun (https://cancun.tomtomgroup.com/)
-
+<br><br><br>
 ## 1. Setup
 
 ### 1.1. Script setup (when working with PyCharm on Win 10):
@@ -58,8 +58,8 @@ Install needed python libraries by writing in project's root: `pip install -r re
 In PyCharm project:
 * In "Project" tab (left side) find and open "External Libraries" -> "Lib" -> "xml" -> "etree" -> "ElementTree.py"
 * comment out ("#" before line) two first lines in register_namespace function (line 1006 and 1007) in xml.etree.ElementTree to be able to register xml namespaces called "ns*"
-* PyCharm should save file itself  
-
+* PyCharm should save file itself
+<br><br><br>
 ### 1.2. Script takes as input:
 * One of TTI output .xml files from [Orlando Datastore](http://prod-orlandodatastore-vip.traffic.tt3.com:8080/ui/).   
 * Input.json, which is collection of info needed for ranking messages, e.g.:
@@ -71,8 +71,8 @@ In PyCharm project:
     * score dictionaries that hold condition and value that message should receive for it
     * etc.
 Newest version of the file is available in github repo: output -> _dev_tests folder.  
-Both files need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script:
-
+Both files need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script.
+<br><br><br>
 ### 1.3. Starting script (after setting up what it needs):
 * TTI output .xml and input.json configuration file in one of "output" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
@@ -98,6 +98,8 @@ Bigger versions of images in "static" folder.
 > EXAMPLE OF FULL CMD COMMAND:
 > 
 > `py incident_ranking_function.py -f output\<your-folder-name> -m line`
+
+<br><br><br><br><br>
 ___
 
 ## 2. TTI .xml tag's values used for calculating scores
@@ -116,77 +118,85 @@ Outcome will be:
 * tuple of two tuples of lat & lon, set closer to ccp will be taken for distance calculation
 * tuple of lat & lon
 * ("Error", "Error") tuple, if coordinates not found
-
+<br><br><br>
 ### 2.2. Event info
 From \<messageManagement\> -> \<contentType\>
 
 Outcome will be string containing:
 * event name
 * "Error" if event name not found
-
+<br><br><br>
 ### 2.3. Jam priority
 From \<event\> -> \<eventDescription\> -> \<alertCCodes\> -> \<eventCode\>
 
 Outcome will be string containing:
 * jam priority
 * "Error" if not found
-
+* null if does not apply
+<br><br><br>
 ### 2.4. FRC info
 From \<location\> -> \<locationGeneral\> -> \<functionalRoadClass\>
 
 Outcome will be string containing:
 * frc info
 * "Error" if not found
-
+<br><br><br>
 ### 2.5. Delay info
 From \<event\> -> \<effectInfo\> -> \<absoluteDelaySeconds\>
 
 Outcome will be integer:
 * delay in seconds
 * -100, means that message did not have a delay info, most probably completely correctly
-
+* null if does not apply
+<br><br><br>
 ### 2.6. Expiry info
 From \<messageManagement\> -> \<expiresIn\>
 
 Outcome will be float:
 * amount of days in which message expires,
 * -100 if amount was not found (but for no there was no such case, and amount was always positive)
-
+<br><br><br>
 ### 2.7. Start time
 From \<event\> -> \<tmcEvent\> -> \<startTimeUTC\>
 
 Outcome will be string:
 * start datetime of message
 * "Error" if not found (active messages usually (or in every case) do not have startTimeUTC)
-
-
+<br><br><br><br><br>
 ___
 
-## 3. Score types
-### 3.1. Filtering function
+## 3. Filtering and score types
+### 3.1. Filtering
 Decides either message should be taken into account.
-* in inner radius EXCLUDES messages with ceratin FRCs given on a list "inn_r" (delimited with ",", no space)
-* in outer radius EXCLUDES messages with ceratin FRCs given on a list "out_r"
-* outside of outer radius: INCLUDES only messages given on a "3rd_r_frcs" and  "3rd_r_events" lists (e.g. only CLOSURES on low frcs should be left)
-* ADDITIONALLY:
-* EXCLUDES messages with event type listed in "excluded_completely" parameter
-* EXCLUDES messages that have a startTimeUTC attribute and it is greater than file creationTimeUTC (from metadata), which means they are not active, future events
-* (OPTIONAL) EXCLUDES messages which are out of inner radius AND "behind" route direction (bearing between start
-and end coordinates)  
-* (OPTIONAL) EXCLUDES messages outside 3rd radius (but it can be set as "endless" with -1 value in "3rd_radius" var)
+* EXCLUDES messages that have a startTimeUTC attribute and it is greater than file creationTimeUTC (from metadata), which means they are not active, future events  
+
+OPTIONALLY (string values delimited with ",", no space, if not needed then leave empty string ""):
+* "inn_r_frcs_exclude": EXCLUDES messages in inner radius with ceratin FRCs given on a list 
+* "out_r_frcs_exclude": EXCLUDES messages in outer radius with ceratin FRCs given on a list 
+* "3rd_r_events_include" and "3rd_r_frcs_include" INCLUDES only messages outside of outer radius that are on both lists (e.g. only "CLOSURES" on "FRC0,FRC1")
+* "excluded_completely" EXCLUDES messages with event type listed in  
+
+OPTIONALLY (numerical values, when not needed please follow instructions)
+* "3rd_radius" EXCLUDES messages outside 3rd radius, but it can be set as "endless" with -1 value
+* "limit" when messages are sorted desc by ranking score EXCLUDES messages after certain messages number limit, when not needed needs to be set a high integer (e.g. 50k)
+* EXCLUDES messages with ranking score below given value, when not needed needs to be set low, negative number, e.g. -100
+* EXCLUDES messages which are out of inner radius AND certain direction "behind" route direction (bearing between start and end coordinates), e.g.
+  * 0 will remove all messages outside inner radius.  
+  * 45 will create a 90 degree cone around ccp->dest line (45 degrees on both sides of the line), leaving messages only there  
+  * 180 will turn off the filter.  
 
 Outcome: boolean, decides whether to:
 * filter out a message (True)
-* or not (False).
-
+* or not (False)
+<br><br><br>
 ### 3.2. Distance score
 Formula for the score is: 1 - distance between ccp and incident / outer radius.
 Output value ranges between 1 (highest score) until -X (largest registered was -4.7, depends on how large the country is).
 
 Outcome: float, either with:
 * distance score
-* or -100 when distance could not been calculated. 
-
+* or -100 when distance could not been calculated
+<br><br><br>
 ### 3.3. Radius boost score
 Output ranges from 1 to 0.
 3 levels which can receive different scores:
@@ -196,22 +206,25 @@ Output ranges from 1 to 0.
 
 Outcome: float, either with:
 * radius boost score value connected to certain category in input .json file 
-* or -100 when distance could not been calculated. 
-
+* or -100 when distance could not been calculated
+<br><br><br>
 ### 3.4. Event score
 Output ranges from 1 to 0.
 Different events receive different scores, e.g.:
 * CLOSURES 1
 * ROADWORKS 0.6
-* etc.
+* etc.  
 
+JAM's event score is also affected by value of jam priority.  
+E.g. If JAM_UNCONDITIONAL in "event_score" object in input.json has 0.9, and some Jam of this type had "jam_priority" 
+"115" equal 0.6 in input.json, then this message's event score will be 0.54.  
+  
 Outcome: float, either with:
-* 0 when event type unlisted (or listed with typo) in input .json file
 * score value connected to certain category in input .json file
+* -10 when event type unlisted (or listed with typo) in input .json file
+* -11 when jam priority type unlisted (or listed with typo) in input .json file
 * -100 if getting the event info from .xml was not possible
-
-In the future score will be enhanced with treating Jams depending on their severity.
-
+<br><br><br>
 ### 3.5. FRC score
 Output ranges from 1 to 0.
 Different FRCs receive different scores, e.g.:
@@ -223,7 +236,7 @@ Outcome: float, either with:
 * 0 when frc type unlisted (or listed with typo) in input .json file
 * score value connected to certain category in input .json file
 * -100 if getting the event info from .xml was not possible
-
+<br><br><br>
 ### 3.6. Delay score
 Output ranges from 1 to 0.
 Bigger the delay, more points the message gets.
@@ -232,13 +245,13 @@ Outcome: float, either with:
 * 1 when excluded from counting delay score (on "excluded_from_delay_score" in input .json)
 * 0 if event type is not excluded and does not have a delay either
 * score value connected to certain category in input .json file
-
+<br><br><br>
 ### 3.7. CCP -> destination line distance score
 Output ranges from 1 to negative values, depends on distance.
 Does not work like filter.
 Bigger the distance between incident end and ccp-dest line, smaller the score
 
 1 - (distance / buffer around line in km)
-
+<br><br><br>
 ### 3.8 Weights
-Weights for testing different balance between 3.2 - 3.6 scores (Filtering function works first, independently)
+Weights for testing different balance between 3.2 - 3.7 scores (Filtering function works first, independently)

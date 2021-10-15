@@ -69,21 +69,21 @@ In PyCharm project:
     * file name (with or without ".xml") of TTI file that needs to be processed
     * limit of messages in processed file
     * score dictionaries that hold condition and value that message should receive for it
-    * etc.
-Newest version of the file is available in github repo: output -> _dev_tests folder.  
+    * etc.  
+
+[Newest version of the file](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input-description.md) is available in github repo: output -> _dev_tests folder.  
 Both files need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script.
 <br><br><br>
 ### 1.3. Starting script (after setting up what it needs):
 * TTI output .xml and input.json configuration file in one of "output" subfolder
 * in command prompt (cmd/powershell) in project's root folder write 
   * `.\Scripts\activate` to activate Python virtual environment with libraries and modifications described in 1.2. 
-  * `py incident_ranking_function.py -f output\<your-folder-name>`
-* in PyCharm just write `py incident_ranking_function.py -f output\<your-folder-name>` in Terminal in open project
-(of course PyCharm configurations can be used, using that you will be asked for `output\<your-folder-name>`, filename completion doesn't work there, so it's less convenient)
-* !!! configuration .json file has to be in root folder  
+  * `py incident_ranking_function.py` is main part of the command starting script
+  * and there are required flags:
 
 #### Flags:
 * "-f": to indicate a **folder** with TTI .xml file and configuration .json file.
+  * e.g. `-f output\<your-folder-name>`
 * "-m": to choose **mode** in which script works:
   * "around": to simulate situation when car sends request without destination and only incidents around ccp should be sent and displayed.  
   ![around mode](./static/around-mode-s.png)

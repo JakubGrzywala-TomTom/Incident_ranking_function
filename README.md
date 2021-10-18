@@ -72,7 +72,7 @@ In PyCharm project:
     * etc.  
 
 [Newest version of the file](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input.json) is available in github repo: output -> _dev_tests folder.  
-Description of fields from input.josn file [available in the same folder](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input-description.md).
+Description of fields from input.josn file [available in the same folder](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input-description.md).  
 Both files (TTI.xml and input.json) need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script.
 <br><br><br>
 ### 1.3. Starting script (after setting up what it needs):
@@ -175,11 +175,11 @@ OPTIONALLY (string values delimited with ",", no space, if not needed then leave
 * "inn_r_frcs_exclude": EXCLUDES messages in inner radius with ceratin FRCs given on a list 
 * "out_r_frcs_exclude": EXCLUDES messages in outer radius with ceratin FRCs given on a list 
 * "3rd_r_events_include" and "3rd_r_frcs_include" INCLUDES only messages outside of outer radius that are on both lists (e.g. only "CLOSURES" on "FRC0,FRC1")
-* "excluded_completely" EXCLUDES messages with event type listed in  
+* "excluded_completely" EXCLUDES messages with event types listed in this field
 
 OPTIONALLY (numerical values, when not needed please follow instructions)
 * "3rd_radius" EXCLUDES messages outside 3rd radius, but it can be set as "endless" with -1 value
-* "limit" when messages are sorted desc by ranking score EXCLUDES messages after certain messages number limit, when not needed needs to be set a high integer (e.g. 50k)
+* "limit" when messages are sorted desc by ranking score EXCLUDES messages after certain messages number limit, when not needed needs to be set as high integer (e.g. 50000)
 * EXCLUDES messages with ranking score below given value, when not needed needs to be set low, negative number, e.g. -100
 * EXCLUDES messages which are out of inner radius AND certain direction "behind" route direction (bearing between start and end coordinates), e.g.
   * 0 will remove all messages outside inner radius.  
@@ -191,7 +191,7 @@ Outcome: boolean, decides whether to:
 * or not (False)
 <br><br><br>
 ### 3.2. Distance score
-Formula for the score is: 1 - distance between ccp and incident / outer radius.
+Formula for the score is: `1 - distance between ccp and incident / outer radius`.
 Output value ranges between 1 (highest score) until -X (largest registered was -4.7, depends on how large the country is).
 
 Outcome: float, either with:
@@ -230,7 +230,7 @@ Outcome: float, either with:
 Output ranges from 1 to 0.
 Different FRCs receive different scores, e.g.:
 * FRC1 1
-* FRE2 0.9
+* FRC2 0.9
 * etc.
 
 Outcome: float, either with:
@@ -248,11 +248,14 @@ Outcome: float, either with:
 * score value connected to certain category in input .json file
 <br><br><br>
 ### 3.7. CCP -> destination line distance score
-Output ranges from 1 to negative values, depends on distance.
+Formula is: `1 - (distance / buffer around line in km)`
+Output ranges from 1 to negative values, depends on distance and what buffer is given.
 Does not work like filter.
 Bigger the distance between incident end and ccp-dest line, smaller the score
 
-1 - (distance / buffer around line in km)
+Outcome: float, either with:
+* distance score
+* or -100 when distance could not been calculated
 <br><br><br>
 ### 3.8 Weights
 Weights for testing different balance between 3.2 - 3.7 scores (Filtering function works first, independently)

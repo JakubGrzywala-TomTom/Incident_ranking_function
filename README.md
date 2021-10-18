@@ -71,8 +71,9 @@ In PyCharm project:
     * score dictionaries that hold condition and value that message should receive for it
     * etc.  
 
-[Newest version of the file](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input-description.md) is available in github repo: output -> _dev_tests folder.  
-Both files need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script.
+[Newest version of the file](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input.json) is available in github repo: output -> _dev_tests folder.  
+Description of fields from input.josn file [available in the same folder](https://github.com/JakubGrzywala-TomTom/Incident_ranking_function/blob/master/output/_dev_tests/input-description.md).
+Both files (TTI.xml and input.json) need to be placed in one of "output" subfolders. There can be many folders with different configurations, they can be named anyhow, but the name has to be indicated after "-f" flag during starting script.
 <br><br><br>
 ### 1.3. Starting script (after setting up what it needs):
 * TTI output .xml and input.json configuration file in one of "output" subfolder
